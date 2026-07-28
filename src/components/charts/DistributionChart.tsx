@@ -14,7 +14,7 @@ import {
 import { BarChart2 } from 'lucide-react';
 
 const BAR_COLORS = [
-  '#f43f5e', // Rose for low
+  '#f43f5e', // Rose
   '#f59e0b', // Amber
   '#06b6d4', // Cyan
   '#10b981', // Emerald
@@ -26,7 +26,7 @@ const BAR_COLORS = [
 export default function DistributionChart({ data, title, metric }: { data: any[], title: string, metric: string }) {
   if (!data || data.length === 0) {
     return (
-      <div className="h-[340px] flex items-center justify-center text-slate-400 text-sm">
+      <div className="h-[340px] flex items-center justify-center text-slate-400 text-sm font-medium">
         No distribution data available
       </div>
     );
@@ -35,15 +35,20 @@ export default function DistributionChart({ data, title, metric }: { data: any[]
   return (
     <div className="w-full h-[380px] flex flex-col justify-between">
       <div className="flex items-center justify-between mb-4">
-        <div className="flex items-center gap-2">
-          <div className="w-7 h-7 rounded-lg bg-indigo-500/15 text-indigo-600 dark:text-indigo-400 flex items-center justify-center">
+        <div className="flex items-center gap-2.5">
+          <div className="w-8 h-8 rounded-lg bg-indigo-500 text-white flex items-center justify-center shadow-md shadow-indigo-500/25 font-bold">
             <BarChart2 className="w-4 h-4" />
           </div>
-          <h3 className="text-base font-bold font-display text-slate-900 dark:text-white">
-            {title}
-          </h3>
+          <div>
+            <h3 className="text-base font-bold font-display text-slate-900 dark:text-white">
+              {title}
+            </h3>
+            <span className="text-[11px] text-slate-500 dark:text-slate-400">Score Range Frequency</span>
+          </div>
         </div>
-        <span className="text-xs text-slate-400 font-mono">Cohort Frequency</span>
+        <span className="text-xs font-bold text-indigo-600 dark:text-indigo-400 bg-indigo-500/10 px-2.5 py-1 rounded-full font-mono border border-indigo-500/20">
+          Cohort Spread
+        </span>
       </div>
 
       <div className="w-full flex-grow">
@@ -54,29 +59,29 @@ export default function DistributionChart({ data, title, metric }: { data: any[]
               dataKey="range" 
               axisLine={false} 
               tickLine={false} 
-              tick={{ fill: '#94a3b8', fontSize: 11 }} 
+              tick={{ fill: '#94a3b8', fontSize: 11, fontWeight: 600 }} 
               dy={10}
             />
             <YAxis 
               axisLine={false} 
               tickLine={false} 
-              tick={{ fill: '#94a3b8', fontSize: 11 }} 
+              tick={{ fill: '#94a3b8', fontSize: 11, fontWeight: 600 }} 
             />
             <Tooltip 
-              cursor={{ fill: 'rgba(99, 102, 241, 0.06)' }}
+              cursor={{ fill: 'rgba(99, 102, 241, 0.08)' }}
               content={({ active, payload, label }) => {
                 if (active && payload && payload.length) {
                   return (
-                    <div className="p-3 rounded-xl bg-slate-900 text-white border border-slate-800 shadow-xl text-xs font-sans">
-                      <p className="font-semibold text-indigo-400 mb-1">{metric.toUpperCase()} Range: {label}</p>
-                      <p className="text-slate-300 font-medium">Students: <span className="text-white font-bold">{payload[0].value}</span></p>
+                    <div className="p-3.5 rounded-xl bg-slate-900 text-white border border-slate-700 shadow-2xl text-xs font-sans">
+                      <p className="font-bold text-indigo-400 mb-1">{metric.toUpperCase()} Range: {label}</p>
+                      <p className="text-slate-300 font-medium">Students: <span className="text-white font-bold text-sm">{payload[0].value}</span></p>
                     </div>
                   );
                 }
                 return null;
               }}
             />
-            <Bar dataKey="count" radius={[6, 6, 0, 0]} animationDuration={600} animationEasing="ease-out">
+            <Bar dataKey="count" radius={[8, 8, 0, 0]} animationDuration={600} animationEasing="ease-out">
               {data.map((entry, index) => (
                 <Cell key={`cell-${index}`} fill={BAR_COLORS[index % BAR_COLORS.length]} />
               ))}

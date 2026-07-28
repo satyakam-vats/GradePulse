@@ -1,17 +1,31 @@
 'use client';
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Search, ChevronUp, ChevronDown, Trophy, Medal, Award, ChevronLeft, ChevronRight, X } from 'lucide-react';
 
-export default function Leaderboard({ students, onStudentClick }: { students: any[], onStudentClick: (s: any) => void }) {
+export default function Leaderboard({ 
+  students, 
+  onStudentClick,
+  metric = 'cgpa'
+}: { 
+  students: any[], 
+  onStudentClick: (s: any) => void,
+  metric?: 'cgpa' | 'sgpa'
+}) {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedSection, setSelectedSection] = useState('ALL');
-  const [sortConfig, setSortConfig] = useState({ key: 'cgpa', direction: 'desc' });
+  const [sortConfig, setSortConfig] = useState<{ key: string; direction: 'desc' | 'asc' }>({ key: metric, direction: 'desc' });
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 12;
 
+  // Sync sort key whenever top-level metric toggle (CGPA / SGPA) changes
+  useEffect(() => {
+    setSortConfig({ key: metric, direction: 'desc' });
+    setCurrentPage(1);
+  }, [metric]);
+
   const handleSort = (key: string) => {
-    let direction = 'desc';
+    let direction: 'desc' | 'asc' = 'desc';
     if (sortConfig.key === key && sortConfig.direction === 'desc') {
       direction = 'asc';
     }
@@ -36,8 +50,8 @@ export default function Leaderboard({ students, onStudentClick }: { students: an
     }
 
     result.sort((a, b) => {
-      const aValue = a[sortConfig.key] ?? a[sortConfig.key.toUpperCase()] ?? 0;
-      const bValue = b[sortConfig.key] ?? b[sortConfig.key.toUpperCase()] ?? 0;
+      const aValue = Number(a[sortConfig.key] ?? a[sortConfig.key.toUpperCase()] ?? 0);
+      const bValue = Number(b[sortConfig.key] ?? b[sortConfig.key.toUpperCase()] ?? 0);
       
       if (aValue < bValue) return sortConfig.direction === 'asc' ? -1 : 1;
       if (aValue > bValue) return sortConfig.direction === 'asc' ? 1 : -1;
@@ -47,14 +61,13 @@ export default function Leaderboard({ students, onStudentClick }: { students: an
     return result;
   }, [students, searchTerm, selectedSection, sortConfig]);
 
-  // Compute Dense Ranks (Equal CGPAs get the same rank)
+  // Compute Sequential Serial Ranks (1, 2, 3, 3, 4, 5...)
   const ranksMap = useMemo(() => {
     const map = new Map<string, { rank: number; isTied: boolean }>();
     if (filteredAndSorted.length === 0) return map;
 
     let currentRank = 1;
     let previousValue = -1;
-    let sameCount = 0;
 
     for (let i = 0; i < filteredAndSorted.length; i++) {
       const s = filteredAndSorted[i];
@@ -66,17 +79,15 @@ export default function Leaderboard({ students, onStudentClick }: { students: an
         map.set(usn, { rank: 1, isTied: false });
       } else {
         if (Math.abs(val - previousValue) < 0.001) {
-          // Tied with previous student
-          sameCount++;
+          // Tied with previous student - same rank number!
           map.set(usn, { rank: currentRank, isTied: true });
-          // Mark previous as tied too
           const prevUsn = filteredAndSorted[i - 1].usn || filteredAndSorted[i - 1].USN;
           if (map.has(prevUsn)) {
             map.get(prevUsn)!.isTied = true;
           }
         } else {
-          currentRank = currentRank + sameCount + 1;
-          sameCount = 0;
+          // Serial rank increment (+1)
+          currentRank = currentRank + 1;
           previousValue = val;
           map.set(usn, { rank: currentRank, isTied: false });
         }
@@ -120,7 +131,7 @@ export default function Leaderboard({ students, onStudentClick }: { students: an
     }
     return (
       <span className="font-mono text-slate-400 font-bold text-xs pl-2">
-        #{r} {rankInfo.isTied && '(Tied)'}
+        Rank {r} {rankInfo.isTied && '(Tied)'}
       </span>
     );
   };
@@ -130,8 +141,11 @@ export default function Leaderboard({ students, onStudentClick }: { students: an
       {/* Search & Header controls */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
         <div>
-          <h3 className="text-base font-bold font-display text-slate-900 dark:text-white">
+          <h3 className="text-base font-bold font-display text-slate-900 dark:text-white flex items-center gap-2">
             Class Leaderboard
+            <span className="text-xs uppercase font-mono px-2 py-0.5 rounded bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 font-bold border border-indigo-500/20">
+              Sorted by {sortConfig.key.toUpperCase()}
+            </span>
           </h3>
           <p className="text-xs font-medium text-slate-500 dark:text-slate-400">Click any student row to view attendance & CIE breakdown</p>
         </div>
@@ -158,7 +172,7 @@ export default function Leaderboard({ students, onStudentClick }: { students: an
           </div>
 
           {/* Search Bar */}
-          <div className="relative w-full sm:w-52">
+          <div className="relative w-full sm:w-48">
             <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-indigo-500" />
             <input
               type="text"
@@ -167,7 +181,7 @@ export default function Leaderboard({ students, onStudentClick }: { students: an
                 setSearchTerm(e.target.value);
                 setCurrentPage(1);
               }}
-              placeholder="Search USN or Name..."
+              placeholder="Search USN/Name..."
               className="w-full pl-9 pr-8 py-1.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-white/80 dark:bg-slate-900/80 text-xs font-medium text-slate-900 dark:text-white focus:outline-none focus:border-indigo-500 shadow-sm"
             />
             {searchTerm && (
@@ -193,7 +207,9 @@ export default function Leaderboard({ students, onStudentClick }: { students: an
               <th className="py-2.5 px-3 font-extrabold">Sec</th>
               <th 
                 onClick={() => handleSort('cgpa')}
-                className="py-2.5 px-3 font-extrabold cursor-pointer hover:text-emerald-500 select-none"
+                className={`py-2.5 px-3 font-extrabold cursor-pointer hover:text-emerald-500 select-none ${
+                  sortConfig.key === 'cgpa' ? 'text-emerald-600 dark:text-emerald-400 bg-emerald-500/10' : ''
+                }`}
               >
                 <div className="flex items-center gap-1">
                   CGPA {getSortIcon('cgpa')}
@@ -201,7 +217,9 @@ export default function Leaderboard({ students, onStudentClick }: { students: an
               </th>
               <th 
                 onClick={() => handleSort('sgpa')}
-                className="py-2.5 px-3 font-extrabold cursor-pointer hover:text-indigo-500 select-none"
+                className={`py-2.5 px-3 font-extrabold cursor-pointer hover:text-indigo-500 select-none ${
+                  sortConfig.key === 'sgpa' ? 'text-indigo-600 dark:text-indigo-400 bg-indigo-500/10' : ''
+                }`}
               >
                 <div className="flex items-center gap-1">
                   SGPA {getSortIcon('sgpa')}
@@ -241,8 +259,16 @@ export default function Leaderboard({ students, onStudentClick }: { students: an
                         Sec {section}
                       </span>
                     </td>
-                    <td className="py-2.5 px-3 font-black font-display text-emerald-600 dark:text-emerald-400 text-sm">{cgpaVal}</td>
-                    <td className="py-2.5 px-3 font-bold text-indigo-600 dark:text-indigo-400">{sgpaVal}</td>
+                    <td className={`py-2.5 px-3 font-black font-display text-emerald-600 dark:text-emerald-400 text-sm ${
+                      sortConfig.key === 'cgpa' ? 'bg-emerald-500/10 rounded-md font-extrabold' : ''
+                    }`}>
+                      {cgpaVal}
+                    </td>
+                    <td className={`py-2.5 px-3 font-bold text-indigo-600 dark:text-indigo-400 ${
+                      sortConfig.key === 'sgpa' ? 'bg-indigo-500/10 rounded-md font-extrabold' : ''
+                    }`}>
+                      {sgpaVal}
+                    </td>
                     <td className="py-2.5 px-3 text-right">
                       {activeBacklogs === 0 ? (
                         clearedBacklogs > 0 ? (

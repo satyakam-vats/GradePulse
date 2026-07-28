@@ -212,12 +212,16 @@ export default function DashboardPage() {
 
               {/* Leaderboard Table (7 cols) */}
               <div className="lg:col-span-7 ui-card p-6 border-t-2 border-t-cyan-500">
-                <Leaderboard students={students} onStudentClick={handleStudentClick} />
+                <Leaderboard 
+                  students={students} 
+                  onStudentClick={handleStudentClick} 
+                  metric={metric}
+                />
               </div>
             </div>
 
             {/* Dynamic Interactive Student Spectrum Bar Representation */}
-            <DynamicBarChart students={students} />
+            <DynamicBarChart students={students} metric={metric} />
           </>
         )}
       </main>

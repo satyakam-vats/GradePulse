@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid, Cell } from 'recharts';
 import { ArrowUpDown, Filter, BarChart3 } from 'lucide-react';
 
@@ -12,11 +12,22 @@ interface StudentItem {
   sgpa: number | null;
 }
 
-export default function DynamicBarChart({ students }: { students: StudentItem[] }) {
-  const [sortKey, setSortKey] = useState<'cgpa' | 'sgpa' | 'usn' | 'name'>('cgpa');
+export default function DynamicBarChart({ 
+  students,
+  metric = 'cgpa'
+}: { 
+  students: StudentItem[],
+  metric?: 'cgpa' | 'sgpa'
+}) {
+  const [sortKey, setSortKey] = useState<'cgpa' | 'sgpa' | 'usn' | 'name'>(metric);
   const [sortOrder, setSortOrder] = useState<'desc' | 'asc'>('desc');
   const [selectedSection, setSelectedSection] = useState<string>('ALL');
   const [displayLimit, setDisplayLimit] = useState<number>(20);
+
+  // Sync sortKey whenever metric changes at top level
+  useEffect(() => {
+    setSortKey(metric);
+  }, [metric]);
 
   const processedData = useMemo(() => {
     let list = [...students];
@@ -80,6 +91,9 @@ export default function DynamicBarChart({ students }: { students: StudentItem[] 
         <div>
           <h3 className="text-base font-bold font-display text-slate-900 dark:text-white flex items-center gap-2">
             <BarChart3 className="w-4 h-4 text-emerald-500" /> Dynamic Student Performance Spectrum
+            <span className="text-xs font-mono uppercase font-bold px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
+              Active: {sortKey.toUpperCase()}
+            </span>
           </h3>
           <p className="text-xs text-slate-500 dark:text-slate-400">Sort & compare student CGPA/SGPA across sections dynamically</p>
         </div>

@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import dynamic from 'next/dynamic';
 
 const Plot = dynamic(() => import('react-plotly.js'), { 
@@ -9,15 +9,28 @@ const Plot = dynamic(() => import('react-plotly.js'), {
 });
 
 export default function BoxPlotChart({ values, title }: { values: number[], title: string }) {
-  if (!values || values.length === 0) return <div>No data available</div>;
+  const [themeColors, setThemeColors] = useState({ primary: '#5bc0be', accent: '#06b6d4', text: '#f4f5f6' });
 
-  const isDarkMode = typeof document !== 'undefined' && document.documentElement.classList.contains('dark');
-  const textColor = isDarkMode ? '#cbd5e1' : '#334155';
-  const gridColor = isDarkMode ? '#334155' : '#e2e8f0';
+  useEffect(() => {
+    const updateColors = () => {
+      const styles = getComputedStyle(document.documentElement);
+      const primary = styles.getPropertyValue('--color-primary').trim() || '#5bc0be';
+      const accent = styles.getPropertyValue('--color-accent').trim() || '#06b6d4';
+      const text = styles.getPropertyValue('--foreground').trim() || '#f4f5f6';
+      setThemeColors({ primary, accent, text });
+    };
+
+    updateColors();
+    const observer = new MutationObserver(updateColors);
+    observer.observe(document.documentElement, { attributes: true, attributeFilter: ['style', 'class'] });
+    return () => observer.disconnect();
+  }, []);
+
+  if (!values || values.length === 0) return <div>No data available</div>;
 
   return (
     <div className="w-full h-[400px]">
-      <h3 className="text-lg font-semibold mb-4 text-slate-800 dark:text-slate-200">{title}</h3>
+      <h3 className="text-lg font-semibold mb-4 font-display">{title}</h3>
       <Plot
         data={[
           {
@@ -27,8 +40,8 @@ export default function BoxPlotChart({ values, title }: { values: number[], titl
             boxpoints: 'all',
             jitter: 0.3,
             pointpos: -1.8,
-            marker: { color: '#6366f1' },
-            line: { color: '#4f46e5' },
+            marker: { color: themeColors.primary },
+            line: { color: themeColors.accent },
           }
         ]}
         layout={{
@@ -36,10 +49,10 @@ export default function BoxPlotChart({ values, title }: { values: number[], titl
           margin: { l: 40, r: 20, t: 20, b: 20 },
           paper_bgcolor: 'rgba(0,0,0,0)',
           plot_bgcolor: 'rgba(0,0,0,0)',
-          font: { color: textColor },
+          font: { color: themeColors.text, family: 'var(--font-sans)' },
           yaxis: {
-            gridcolor: gridColor,
-            zerolinecolor: gridColor,
+            gridcolor: 'rgba(150,150,150,0.2)',
+            zerolinecolor: 'rgba(150,150,150,0.2)',
           }
         }}
         useResizeHandler={true}

@@ -1,0 +1,106 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Batch {
+  id        Int       @id @default(autoincrement())
+  name      String
+  startYear Int
+  endYear   Int
+  students  Student[]
+}
+
+model Branch {
+  id       Int       @id @default(autoincrement())
+  code     String    @unique
+  name     String
+  students Student[]
+}
+
+model Semester {
+  id              Int              @id @default(autoincrement())
+  number          Int
+  term            String           @unique
+  academicYear    String
+  type            String
+  semesterResults SemesterResult[]
+  subjectResults  SubjectResult[]
+}
+
+model Subject {
+  id             Int             @id @default(autoincrement())
+  courseCode     String          @unique
+  name           String
+  defaultCredits Int
+  subjectResults SubjectResult[]
+  backlogs       Backlog[]
+}
+
+model Student {
+  id             Int              @id @default(autoincrement())
+  usn            String           @unique
+  name           String
+  gender         String?
+  batchId        Int
+  branchId       Int
+  overallCgpa    Float?
+  creditsEarned  Int?
+  creditsToEarn  Int?
+  
+  batch          Batch            @relation(fields: [batchId], references: [id], onDelete: Cascade)
+  branch         Branch           @relation(fields: [branchId], references: [id], onDelete: Cascade)
+  
+  semesterResults SemesterResult[]
+  subjectResults  SubjectResult[]
+  backlogs        Backlog[]
+}
+
+model SemesterResult {
+  id                Int      @id @default(autoincrement())
+  studentId         Int
+  semesterId        Int
+  creditsRegistered Int
+  creditsEarned     Int
+  sgpa              Float
+  cgpa              Float
+
+  student  Student  @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  semester Semester @relation(fields: [semesterId], references: [id], onDelete: Cascade)
+
+  @@unique([studentId, semesterId])
+}
+
+model SubjectResult {
+  id            Int      @id @default(autoincrement())
+  studentId     Int
+  subjectId     Int
+  semesterId    Int
+  cieMarks      Int
+  attendance    Int
+  creditsEarned Int
+  gpa           Float
+  grade         String
+
+  student  Student  @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  subject  Subject  @relation(fields: [subjectId], references: [id], onDelete: Cascade)
+  semester Semester @relation(fields: [semesterId], references: [id], onDelete: Cascade)
+
+  @@unique([studentId, subjectId, semesterId])
+}
+
+model Backlog {
+  id        Int      @id @default(autoincrement())
+  studentId Int
+  subjectId Int
+  attempts  Int
+
+  student Student @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  subject Subject @relation(fields: [subjectId], references: [id], onDelete: Cascade)
+
+  @@unique([studentId, subjectId])
+}

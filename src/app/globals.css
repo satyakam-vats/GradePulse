@@ -1,14 +1,16 @@
 @import "tailwindcss";
 
+@variant dark (&:where(.dark, .dark *));
+
 @theme {
   /* Colors */
-  --color-slate-950: #090d16;
-  --color-slate-900: #111827;
-  --color-slate-850: #161e31;
-  --color-slate-800: #1f293d;
-
+  --color-indigo-500: #6366f1;
+  --color-indigo-600: #4f46e5;
   --color-emerald-500: #10b981;
   --color-emerald-600: #059669;
+  --color-cyan-500: #06b6d4;
+  --color-amber-500: #f59e0b;
+  --color-rose-500: #f43f5e;
   
   /* Fonts */
   --font-sans: var(--font-inter), var(--font-jakarta), ui-sans-serif, system-ui, sans-serif;
@@ -23,10 +25,8 @@
   --card-border: #e2e8f0;
   --muted-bg: #f1f5f9;
   --muted-fg: #64748b;
-  --primary-accent: #059669;
-  --primary-accent-light: #ecfdf5;
-  --shadow-soft: 0 4px 20px -2px rgba(15, 23, 42, 0.05);
-  --shadow-elevated: 0 10px 30px -5px rgba(15, 23, 42, 0.08);
+  --shadow-soft: 0 4px 20px -2px rgba(99, 102, 241, 0.06);
+  --shadow-elevated: 0 10px 30px -5px rgba(15, 23, 42, 0.1);
 }
 
 .dark {
@@ -36,8 +36,6 @@
   --card-border: #1e293b;
   --muted-bg: #1b2436;
   --muted-fg: #94a3b8;
-  --primary-accent: #10b981;
-  --primary-accent-light: rgba(16, 185, 129, 0.12);
   --shadow-soft: 0 4px 25px -2px rgba(0, 0, 0, 0.4);
   --shadow-elevated: 0 12px 35px -5px rgba(0, 0, 0, 0.6);
 }
@@ -48,7 +46,7 @@ body {
   font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  transition: background-color 0.2s ease, color 0.2s ease;
+  transition: background-color 0.25s ease, color 0.25s ease;
 }
 
 /* Typography utilities */
@@ -60,7 +58,7 @@ body {
 .ui-card {
   background-color: var(--card-bg);
   border: 1px solid var(--card-border);
-  border-radius: 0.75rem;
+  border-radius: 0.875rem;
   box-shadow: var(--shadow-soft);
   transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
 }
@@ -68,7 +66,7 @@ body {
 .ui-card-hover {
   background-color: var(--card-bg);
   border: 1px solid var(--card-border);
-  border-radius: 0.75rem;
+  border-radius: 0.875rem;
   box-shadow: var(--shadow-soft);
   transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
 }
@@ -76,28 +74,7 @@ body {
 .ui-card-hover:hover {
   transform: translateY(-2px);
   box-shadow: var(--shadow-elevated);
-  border-color: rgba(16, 185, 129, 0.3);
-}
-
-/* Glass card styling */
-.glass-panel {
-  background: rgba(255, 255, 255, 0.75);
-  backdrop-filter: blur(12px);
-  border: 1px solid rgba(226, 232, 240, 0.8);
-  box-shadow: var(--shadow-soft);
-}
-
-.dark .glass-panel {
-  background: rgba(17, 24, 39, 0.75);
-  backdrop-filter: blur(12px);
-  border: 1px solid rgba(30, 41, 59, 0.8);
-  box-shadow: var(--shadow-soft);
-}
-
-/* Subtle Shimmer for Top Ranks */
-.shimmer-badge {
-  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-  color: #ffffff;
+  border-color: rgba(99, 102, 241, 0.4);
 }
 
 /* Custom Scrollbar */

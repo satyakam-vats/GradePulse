@@ -13,6 +13,16 @@ import {
 } from 'recharts';
 import { BarChart2 } from 'lucide-react';
 
+const BAR_COLORS = [
+  '#f43f5e', // Rose for low
+  '#f59e0b', // Amber
+  '#06b6d4', // Cyan
+  '#10b981', // Emerald
+  '#6366f1', // Indigo
+  '#8b5cf6', // Violet
+  '#ec4899'  // Pink
+];
+
 export default function DistributionChart({ data, title, metric }: { data: any[], title: string, metric: string }) {
   if (!data || data.length === 0) {
     return (
@@ -26,7 +36,9 @@ export default function DistributionChart({ data, title, metric }: { data: any[]
     <div className="w-full h-[380px] flex flex-col justify-between">
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2">
-          <BarChart2 className="w-4 h-4 text-emerald-500" />
+          <div className="w-7 h-7 rounded-lg bg-indigo-500/15 text-indigo-600 dark:text-indigo-400 flex items-center justify-center">
+            <BarChart2 className="w-4 h-4" />
+          </div>
           <h3 className="text-base font-bold font-display text-slate-900 dark:text-white">
             {title}
           </h3>
@@ -51,12 +63,12 @@ export default function DistributionChart({ data, title, metric }: { data: any[]
               tick={{ fill: '#94a3b8', fontSize: 11 }} 
             />
             <Tooltip 
-              cursor={{ fill: 'rgba(16, 185, 129, 0.06)' }}
+              cursor={{ fill: 'rgba(99, 102, 241, 0.06)' }}
               content={({ active, payload, label }) => {
                 if (active && payload && payload.length) {
                   return (
                     <div className="p-3 rounded-xl bg-slate-900 text-white border border-slate-800 shadow-xl text-xs font-sans">
-                      <p className="font-semibold text-emerald-400 mb-1">{metric.toUpperCase()} Range: {label}</p>
+                      <p className="font-semibold text-indigo-400 mb-1">{metric.toUpperCase()} Range: {label}</p>
                       <p className="text-slate-300 font-medium">Students: <span className="text-white font-bold">{payload[0].value}</span></p>
                     </div>
                   );
@@ -66,7 +78,7 @@ export default function DistributionChart({ data, title, metric }: { data: any[]
             />
             <Bar dataKey="count" radius={[6, 6, 0, 0]} animationDuration={600} animationEasing="ease-out">
               {data.map((entry, index) => (
-                <Cell key={`cell-${index}`} fill={index % 2 === 0 ? '#10b981' : '#059669'} opacity={0.9} />
+                <Cell key={`cell-${index}`} fill={BAR_COLORS[index % BAR_COLORS.length]} />
               ))}
             </Bar>
           </BarChart>

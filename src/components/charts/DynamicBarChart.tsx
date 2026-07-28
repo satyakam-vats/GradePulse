@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useMemo } from 'react';
 import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid, Cell } from 'recharts';
-import { ArrowUpDown, Filter, BarChart3 } from 'lucide-react';
+import { ArrowUpDown, BarChart3, Trophy, Medal, Award } from 'lucide-react';
 
 interface StudentItem {
   usn: string;
@@ -56,7 +56,8 @@ export default function DynamicBarChart({
       return 0;
     });
 
-    return list.slice(0, displayLimit).map(s => ({
+    return list.slice(0, displayLimit).map((s, index) => ({
+      rankIndex: index + 1,
       usn: s.usn,
       shortName: s.name.split(' ')[0] || s.usn,
       fullName: s.name,
@@ -67,14 +68,34 @@ export default function DynamicBarChart({
     }));
   }, [students, sortKey, sortOrder, selectedSection, displayLimit]);
 
+  const getBarFill = (val: number, rankIndex: number) => {
+    if (sortOrder === 'desc') {
+      if (rankIndex === 1) return '#fbbf24'; // Gold
+      if (rankIndex === 2) return '#cbd5e1'; // Silver
+      if (rankIndex === 3) return '#f97316'; // Bronze
+    }
+
+    if (val >= 9.8) return '#10b981'; // Emerald
+    if (val >= 9.5) return '#06b6d4'; // Cyan
+    if (val >= 9.0) return '#3b82f6'; // Royal Blue
+    if (val >= 8.5) return '#6366f1'; // Indigo
+    if (val >= 8.0) return '#8b5cf6'; // Purple
+    if (val >= 7.0) return '#f59e0b'; // Amber
+    return '#ef4444';                // Red
+  };
+
   const CustomTooltip = ({ active, payload }: any) => {
     if (active && payload && payload.length) {
       const d = payload[0].payload;
+      const fill = getBarFill(d.value, d.rankIndex);
       return (
-        <div className="p-3 bg-slate-900 border border-slate-700 text-white rounded-xl shadow-xl text-xs space-y-1 z-50">
-          <div className="font-bold text-sm text-emerald-400">{d.fullName}</div>
-          <div className="font-mono text-slate-400">USN: {d.usn} | Sec {d.section}</div>
-          <div className="flex gap-3 font-semibold pt-1 border-t border-slate-800">
+        <div className="p-3.5 bg-slate-900/95 border border-slate-700 text-white rounded-2xl shadow-2xl text-xs space-y-1.5 backdrop-blur-md z-50">
+          <div className="flex items-center gap-2">
+            <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: fill }} />
+            <div className="font-extrabold text-sm text-slate-100">{d.fullName}</div>
+          </div>
+          <div className="font-mono text-slate-400 pl-4">USN: {d.usn} | Sec {d.section}</div>
+          <div className="flex gap-4 font-semibold pt-1 border-t border-slate-800 pl-4">
             <span className="text-emerald-400">CGPA: {d.cgpa.toFixed(2)}</span>
             <span className="text-indigo-400">SGPA: {d.sgpa.toFixed(2)}</span>
           </div>
@@ -90,12 +111,12 @@ export default function DynamicBarChart({
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <h3 className="text-base font-bold font-display text-slate-900 dark:text-white flex items-center gap-2">
-            <BarChart3 className="w-4 h-4 text-emerald-500" /> Dynamic Student Performance Spectrum
-            <span className="text-xs font-mono uppercase font-bold px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
+            <BarChart3 className="w-4 h-4 text-indigo-500" /> Dynamic Student Performance Spectrum
+            <span className="text-xs font-mono uppercase font-bold px-2.5 py-0.5 rounded-full bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-500/20">
               Active: {sortKey.toUpperCase()}
             </span>
           </h3>
-          <p className="text-xs text-slate-500 dark:text-slate-400">Sort & compare student CGPA/SGPA across sections dynamically</p>
+          <p className="text-xs text-slate-500 dark:text-slate-400">Multi-tier rank colors highlight performance spread across sections</p>
         </div>
 
         <div className="flex flex-wrap items-center gap-2 text-xs font-semibold">
@@ -107,7 +128,7 @@ export default function DynamicBarChart({
                 onClick={() => setSelectedSection(sec)}
                 className={`px-2.5 py-1 rounded-lg transition-all ${
                   selectedSection === sec
-                    ? 'bg-emerald-600 text-white font-bold'
+                    ? 'bg-indigo-600 text-white font-bold'
                     : 'text-slate-500 hover:text-slate-900 dark:hover:text-white'
                 }`}
               >
@@ -139,7 +160,7 @@ export default function DynamicBarChart({
           {/* Sort Order Toggle */}
           <button
             onClick={() => setSortOrder(o => (o === 'desc' ? 'asc' : 'desc'))}
-            className="p-1.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-100 dark:bg-slate-950 text-slate-700 dark:text-slate-300 hover:border-emerald-500 flex items-center gap-1"
+            className="p-1.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-100 dark:bg-slate-950 text-slate-700 dark:text-slate-300 hover:border-indigo-500 flex items-center gap-1"
           >
             <ArrowUpDown className="w-3.5 h-3.5" />
             <span>{sortOrder === 'desc' ? 'High → Low' : 'Low → High'}</span>
@@ -163,27 +184,21 @@ export default function DynamicBarChart({
       <div className="h-[300px] w-full pt-4">
         <ResponsiveContainer width="100%" height="100%">
           <BarChart data={processedData} margin={{ top: 10, right: 10, left: -20, bottom: 20 }}>
-            <defs>
-              <linearGradient id="dynamicBarGradient" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stopColor="#10b981" stopOpacity={0.9} />
-                <stop offset="100%" stopColor="#6366f1" stopOpacity={0.6} />
-              </linearGradient>
-            </defs>
             <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#334155" opacity={0.2} />
             <XAxis
               dataKey="shortName"
-              tick={{ fontSize: 10, fill: '#64748b' }}
+              tick={{ fontSize: 10, fill: '#64748b', fontWeight: 600 }}
               interval={0}
               angle={-45}
               textAnchor="end"
             />
             <YAxis domain={[0, 10]} tick={{ fontSize: 10, fill: '#64748b' }} />
             <Tooltip content={<CustomTooltip />} />
-            <Bar dataKey="value" radius={[6, 6, 0, 0]}>
-              {processedData.map((entry, index) => (
+            <Bar dataKey="value" radius={[6, 6, 0, 0]} animationDuration={700}>
+              {processedData.map((entry) => (
                 <Cell
-                  key={`cell-${index}`}
-                  fill={entry.value >= 9 ? '#10b981' : entry.value >= 8 ? '#3b82f6' : entry.value >= 7 ? '#6366f1' : '#f59e0b'}
+                  key={`cell-${entry.usn}`}
+                  fill={getBarFill(entry.value, entry.rankIndex)}
                 />
               ))}
             </Bar>

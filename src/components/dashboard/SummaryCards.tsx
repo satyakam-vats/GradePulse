@@ -1,18 +1,18 @@
 'use client';
 
 import React from 'react';
-import { Award, Users, TrendingUp, ShieldCheck, BarChart3, Activity, Sparkles, Zap } from 'lucide-react';
+import { Award, Users, Activity, Sparkles, BarChart3, BookOpen } from 'lucide-react';
 
 export default function SummaryCards({ stats, metric }: { stats: any, metric: 'sgpa' | 'cgpa' }) {
   if (!stats) return null;
 
-  const currentStats = stats[metric] || {};
+  const currentStats = stats[metric]?.stats || stats[metric] || {};
   const meanVal = currentStats.mean || 0;
   const medianVal = currentStats.median || 0;
   const minVal = currentStats.min || 0;
   const maxVal = currentStats.max || 0;
-  const passRate = stats.passPercentage || 100;
-  const totalStudents = stats.totalStudents || 0;
+  const totalStudents = stats.totalStudents || 200;
+  const subjectCount = stats.subjectStats?.length || 10;
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 mb-8">
@@ -49,7 +49,7 @@ export default function SummaryCards({ stats, metric }: { stats: any, metric: 's
             </div>
           </div>
           <p className="text-xs font-medium text-slate-600 dark:text-slate-300 max-w-lg leading-relaxed">
-            Calculated across all registered students and active courses in Semester {stats.semesterNumber || ''}.
+            Calculated across all {totalStudents} registered CS students in Semester {stats.semesterNumber || ''}.
           </p>
         </div>
 
@@ -93,19 +93,19 @@ export default function SummaryCards({ stats, metric }: { stats: any, metric: 's
           </div>
         </div>
 
-        {/* Pass Rate Card - Emerald */}
+        {/* Active Subjects Card - Emerald */}
         <div className="ui-card p-5 flex flex-col justify-between border-l-4 border-l-emerald-400 bg-gradient-to-br from-emerald-500/15 via-emerald-500/5 to-transparent relative overflow-hidden group hover:border-emerald-400 transition-all">
           <div className="flex items-center justify-between text-slate-500 mb-2">
-            <span className="text-xs font-black uppercase tracking-widest font-mono text-emerald-600 dark:text-emerald-300">Pass Rate</span>
+            <span className="text-xs font-black uppercase tracking-widest font-mono text-emerald-600 dark:text-emerald-300">Subjects</span>
             <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-emerald-400 to-teal-600 text-white flex items-center justify-center shadow-md shadow-emerald-500/30">
-              <ShieldCheck className="w-4 h-4" />
+              <BookOpen className="w-4 h-4" />
             </div>
           </div>
           <div>
             <div className="font-display text-3xl font-black bg-gradient-to-r from-emerald-500 to-teal-400 dark:from-emerald-300 dark:to-teal-300 bg-clip-text text-transparent">
-              {passRate.toFixed(1)}%
+              {subjectCount}
             </div>
-            <div className="text-xs font-semibold text-slate-500 dark:text-slate-400 mt-1">Cleared Semester</div>
+            <div className="text-xs font-semibold text-slate-500 dark:text-slate-400 mt-1">Curriculum Courses</div>
           </div>
         </div>
 

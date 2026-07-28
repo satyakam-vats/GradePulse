@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { computeStats, getGradeBands, getPassFailRatio } from '@/lib/stats';
+import { computeStats, getGradeBands, getDistribution } from '@/lib/stats';
 
 export async function GET(
   request: Request,
@@ -27,16 +27,15 @@ export async function GET(
       }
     });
 
-    const cgpas = semesterResults.map(r => r.cgpa).filter((val): val is number => val !== null);
-    const sgpas = semesterResults.map(r => r.sgpa).filter((val): val is number => val !== null);
+    const cgpas = semesterResults.map(r => r.cgpa).filter((val): val is number => val !== null && val > 0);
+    const sgpas = semesterResults.map(r => r.sgpa).filter((val): val is number => val !== null && val > 0);
 
     const cgpaStats = computeStats(cgpas);
     const sgpaStats = computeStats(sgpas);
-    const gradeBands = getGradeBands(cgpas);
-    const passFail = getPassFailRatio(
-      semesterResults.map(r => r.creditsRegistered),
-      semesterResults.map(r => r.creditsEarned)
-    );
+    const cgpaBands = getGradeBands(cgpas);
+    const sgpaBands = getGradeBands(sgpas);
+    const cgpaDistribution = getDistribution(cgpas);
+    const sgpaDistribution = getDistribution(sgpas);
 
     // Section-wise analysis (Section A vs Section B vs Section C)
     const sectionGroups = new Map<string, { cgpas: number[]; sgpas: number[]; passed: number; failed: number }>();
@@ -47,8 +46,8 @@ export async function GET(
         sectionGroups.set(sec, { cgpas: [], sgpas: [], passed: 0, failed: 0 });
       }
       const g = sectionGroups.get(sec)!;
-      if (r.cgpa !== null) g.cgpas.push(r.cgpa);
-      if (r.sgpa !== null) g.sgpas.push(r.sgpa);
+      if (r.cgpa !== null && r.cgpa > 0) g.cgpas.push(r.cgpa);
+      if (r.sgpa !== null && r.sgpa > 0) g.sgpas.push(r.sgpa);
       if (r.creditsEarned >= r.creditsRegistered) g.passed++;
       else g.failed++;
     }
@@ -58,15 +57,13 @@ export async function GET(
       const avgSgpa = data.sgpas.length ? data.sgpas.reduce((a, b) => a + b, 0) / data.sgpas.length : 0;
       const topCgpa = data.cgpas.length ? Math.max(...data.cgpas) : 0;
       const total = data.passed + data.failed;
-      const passRate = total ? (data.passed / total) * 100 : 0;
 
       return {
         section,
         count: total,
         avgCgpa: Number(avgCgpa.toFixed(2)),
         avgSgpa: Number(avgSgpa.toFixed(2)),
-        topCgpa: Number(topCgpa.toFixed(2)),
-        passRate: Number(passRate.toFixed(1))
+        topCgpa: Number(topCgpa.toFixed(2))
       };
     }).sort((a, b) => a.section.localeCompare(b.section));
 
@@ -119,9 +116,8 @@ export async function GET(
     });
 
     return NextResponse.json({
-      cgpa: { stats: cgpaStats, gradeBands },
-      sgpa: { stats: sgpaStats },
-      passRate: passFail,
+      cgpa: { stats: cgpaStats, gradeBands: cgpaBands, distribution: cgpaDistribution },
+      sgpa: { stats: sgpaStats, gradeBands: sgpaBands, distribution: sgpaDistribution },
       totalStudents: semesterResults.length,
       sectionStats,
       subjectStats

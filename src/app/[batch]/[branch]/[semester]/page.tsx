@@ -9,6 +9,7 @@ import GradeBandChart from '@/components/charts/GradeBandChart';
 import SubjectAnalysis from '@/components/dashboard/SubjectAnalysis';
 import Leaderboard from '@/components/dashboard/Leaderboard';
 import SectionComparison from '@/components/dashboard/SectionComparison';
+import DynamicBarChart from '@/components/charts/DynamicBarChart';
 import StudentDetailModal from '@/components/modals/StudentDetailModal';
 import CompareModal from '@/components/modals/CompareModal';
 import { ThemeToggle } from '@/components/ui/ThemeToggle';
@@ -214,6 +215,9 @@ export default function DashboardPage() {
                 <Leaderboard students={students} onStudentClick={handleStudentClick} />
               </div>
             </div>
+
+            {/* Dynamic Interactive Student Spectrum Bar Representation */}
+            <DynamicBarChart students={students} />
           </>
         )}
       </main>

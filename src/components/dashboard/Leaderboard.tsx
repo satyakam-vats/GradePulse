@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useMemo } from 'react';
-import { Search, ChevronUp, ChevronDown, Trophy, Medal, Award, ChevronLeft, ChevronRight, X, Filter } from 'lucide-react';
+import { Search, ChevronUp, ChevronDown, Trophy, Medal, Award, ChevronLeft, ChevronRight, X } from 'lucide-react';
 
 export default function Leaderboard({ students, onStudentClick }: { students: any[], onStudentClick: (s: any) => void }) {
   const [searchTerm, setSearchTerm] = useState('');
@@ -47,6 +47,44 @@ export default function Leaderboard({ students, onStudentClick }: { students: an
     return result;
   }, [students, searchTerm, selectedSection, sortConfig]);
 
+  // Compute Dense Ranks (Equal CGPAs get the same rank)
+  const ranksMap = useMemo(() => {
+    const map = new Map<string, { rank: number; isTied: boolean }>();
+    if (filteredAndSorted.length === 0) return map;
+
+    let currentRank = 1;
+    let previousValue = -1;
+    let sameCount = 0;
+
+    for (let i = 0; i < filteredAndSorted.length; i++) {
+      const s = filteredAndSorted[i];
+      const usn = s.usn || s.USN;
+      const val = Number(s[sortConfig.key] ?? s[sortConfig.key.toUpperCase()] ?? 0);
+
+      if (i === 0) {
+        previousValue = val;
+        map.set(usn, { rank: 1, isTied: false });
+      } else {
+        if (Math.abs(val - previousValue) < 0.001) {
+          // Tied with previous student
+          sameCount++;
+          map.set(usn, { rank: currentRank, isTied: true });
+          // Mark previous as tied too
+          const prevUsn = filteredAndSorted[i - 1].usn || filteredAndSorted[i - 1].USN;
+          if (map.has(prevUsn)) {
+            map.get(prevUsn)!.isTied = true;
+          }
+        } else {
+          currentRank = currentRank + sameCount + 1;
+          sameCount = 0;
+          previousValue = val;
+          map.set(usn, { rank: currentRank, isTied: false });
+        }
+      }
+    }
+    return map;
+  }, [filteredAndSorted, sortConfig.key]);
+
   const totalPages = Math.ceil(filteredAndSorted.length / itemsPerPage) || 1;
   const paginatedData = filteredAndSorted.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
 
@@ -55,29 +93,36 @@ export default function Leaderboard({ students, onStudentClick }: { students: an
     return sortConfig.direction === 'asc' ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />;
   };
 
-  const getRankBadge = (index: number) => {
-    if (index === 0) {
+  const getRankBadge = (usn: string) => {
+    const rankInfo = ranksMap.get(usn) || { rank: 1, isTied: false };
+    const r = rankInfo.rank;
+
+    if (r === 1) {
       return (
         <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-gradient-to-r from-amber-400 to-yellow-500 text-slate-950 font-black text-xs shadow-md shadow-amber-500/25">
-          <Trophy className="w-3.5 h-3.5 text-slate-950" /> Rank 1
+          <Trophy className="w-3.5 h-3.5 text-slate-950" /> Rank 1 {rankInfo.isTied && '(Tied)'}
         </span>
       );
     }
-    if (index === 1) {
+    if (r === 2) {
       return (
         <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-gradient-to-r from-slate-200 to-slate-400 text-slate-950 font-black text-xs shadow-md shadow-slate-400/25">
-          <Medal className="w-3.5 h-3.5 text-slate-950" /> Rank 2
+          <Medal className="w-3.5 h-3.5 text-slate-950" /> Rank 2 {rankInfo.isTied && '(Tied)'}
         </span>
       );
     }
-    if (index === 2) {
+    if (r === 3) {
       return (
         <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-gradient-to-r from-orange-400 to-amber-600 text-white font-black text-xs shadow-md shadow-orange-500/25">
-          <Award className="w-3.5 h-3.5 text-white" /> Rank 3
+          <Award className="w-3.5 h-3.5 text-white" /> Rank 3 {rankInfo.isTied && '(Tied)'}
         </span>
       );
     }
-    return <span className="font-mono text-slate-400 font-bold text-xs pl-2">#{index + 1}</span>;
+    return (
+      <span className="font-mono text-slate-400 font-bold text-xs pl-2">
+        #{r} {rankInfo.isTied && '(Tied)'}
+      </span>
+    );
   };
 
   return (
@@ -88,7 +133,7 @@ export default function Leaderboard({ students, onStudentClick }: { students: an
           <h3 className="text-base font-bold font-display text-slate-900 dark:text-white">
             Class Leaderboard
           </h3>
-          <p className="text-xs font-medium text-slate-500 dark:text-slate-400">Click any student row to view full academic profile</p>
+          <p className="text-xs font-medium text-slate-500 dark:text-slate-400">Click any student row to view attendance & CIE breakdown</p>
         </div>
 
         <div className="flex items-center gap-2">
@@ -113,7 +158,7 @@ export default function Leaderboard({ students, onStudentClick }: { students: an
           </div>
 
           {/* Search Bar */}
-          <div className="relative w-full sm:w-56">
+          <div className="relative w-full sm:w-52">
             <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-indigo-500" />
             <input
               type="text"
@@ -174,7 +219,6 @@ export default function Leaderboard({ students, onStudentClick }: { students: an
               </tr>
             ) : (
               paginatedData.map((student, idx) => {
-                const globalIndex = (currentPage - 1) * itemsPerPage + idx;
                 const studentUsn = student.usn || student.USN || '';
                 const studentName = student.name || student.Name || 'Student';
                 const section = student.section || student.Section || 'A';
@@ -189,11 +233,9 @@ export default function Leaderboard({ students, onStudentClick }: { students: an
                     onClick={() => onStudentClick(student)}
                     className="hover:bg-gradient-to-r hover:from-indigo-500/10 hover:via-teal-500/5 hover:to-emerald-500/10 cursor-pointer transition-all"
                   >
-                    <td className="py-2.5 px-3">{getRankBadge(globalIndex)}</td>
+                    <td className="py-2.5 px-3">{getRankBadge(studentUsn)}</td>
                     <td className="py-2.5 px-3 font-mono text-slate-600 dark:text-slate-400 font-bold">{studentUsn}</td>
-                    <td className="py-2.5 px-3 font-bold text-slate-900 dark:text-white flex items-center gap-2">
-                      {studentName}
-                    </td>
+                    <td className="py-2.5 px-3 font-bold text-slate-900 dark:text-white">{studentName}</td>
                     <td className="py-2.5 px-3">
                       <span className="px-2 py-0.5 rounded-md bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 font-mono font-bold text-[11px]">
                         Sec {section}

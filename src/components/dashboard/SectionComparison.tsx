@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { Users, Award, TrendingUp, CheckCircle2 } from 'lucide-react';
+import { Users, Award, TrendingUp, Sparkles } from 'lucide-react';
 
 interface SectionStat {
   section: string;
@@ -9,7 +9,6 @@ interface SectionStat {
   avgCgpa: number;
   avgSgpa: number;
   topCgpa: number;
-  passRate: number;
 }
 
 export default function SectionComparison({ sectionStats }: { sectionStats: SectionStat[] }) {
@@ -37,7 +36,7 @@ export default function SectionComparison({ sectionStats }: { sectionStats: Sect
                 Section {sec.section}
               </span>
               <span className="text-xs font-mono font-medium text-slate-500">
-                {sec.count} Students
+                {sec.count || 0} Students
               </span>
             </div>
 
@@ -47,7 +46,16 @@ export default function SectionComparison({ sectionStats }: { sectionStats: Sect
                   <TrendingUp className="w-3.5 h-3.5 text-emerald-500" /> Mean CGPA
                 </span>
                 <span className="font-extrabold font-display text-emerald-600 dark:text-emerald-400 text-sm">
-                  {sec.avgCgpa.toFixed(2)}
+                  {Number(sec.avgCgpa || 0).toFixed(2)}
+                </span>
+              </div>
+
+              <div className="flex justify-between items-center">
+                <span className="text-slate-500 flex items-center gap-1.5">
+                  <Sparkles className="w-3.5 h-3.5 text-indigo-500" /> Mean SGPA
+                </span>
+                <span className="font-bold text-indigo-600 dark:text-indigo-400">
+                  {Number(sec.avgSgpa || 0).toFixed(2)}
                 </span>
               </div>
 
@@ -56,16 +64,7 @@ export default function SectionComparison({ sectionStats }: { sectionStats: Sect
                   <Award className="w-3.5 h-3.5 text-amber-500" /> Highest CGPA
                 </span>
                 <span className="font-bold text-slate-900 dark:text-white">
-                  {sec.topCgpa.toFixed(2)}
-                </span>
-              </div>
-
-              <div className="flex justify-between items-center">
-                <span className="text-slate-500 flex items-center gap-1.5">
-                  <CheckCircle2 className="w-3.5 h-3.5 text-cyan-500" /> Pass Rate
-                </span>
-                <span className="font-bold text-cyan-600 dark:text-cyan-400">
-                  {sec.passRate.toFixed(1)}%
+                  {Number(sec.topCgpa || 0).toFixed(2)}
                 </span>
               </div>
             </div>

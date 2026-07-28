@@ -46,6 +46,7 @@ model Student {
   usn            String           @unique
   name           String
   gender         String?
+  section        String?
   batchId        Int
   branchId       Int
   overallCgpa    Float?
@@ -76,15 +77,18 @@ model SemesterResult {
 }
 
 model SubjectResult {
-  id            Int      @id @default(autoincrement())
-  studentId     Int
-  subjectId     Int
-  semesterId    Int
-  cieMarks      Int
-  attendance    Int
-  creditsEarned Int
-  gpa           Float
-  grade         String
+  id             Int      @id @default(autoincrement())
+  studentId      Int
+  subjectId      Int
+  semesterId     Int
+  cieMarks       Int
+  attendance     Int
+  creditsEarned  Int
+  gpa            Float
+  grade          String
+  attempts       Int      @default(1)
+  backlogCleared Boolean  @default(false)
+  originalGrade  String?
 
   student  Student  @relation(fields: [studentId], references: [id], onDelete: Cascade)
   subject  Subject  @relation(fields: [subjectId], references: [id], onDelete: Cascade)

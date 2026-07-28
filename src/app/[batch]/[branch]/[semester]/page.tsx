@@ -8,6 +8,7 @@ import DistributionChart from '@/components/charts/DistributionChart';
 import GradeBandChart from '@/components/charts/GradeBandChart';
 import SubjectAnalysis from '@/components/dashboard/SubjectAnalysis';
 import Leaderboard from '@/components/dashboard/Leaderboard';
+import SectionComparison from '@/components/dashboard/SectionComparison';
 import StudentDetailModal from '@/components/modals/StudentDetailModal';
 import CompareModal from '@/components/modals/CompareModal';
 import { ThemeToggle } from '@/components/ui/ThemeToggle';
@@ -66,6 +67,7 @@ export default function DashboardPage() {
   const distributionData = currentStats?.distribution || [];
   const gradeBandsData = currentStats?.gradeBands || [];
   const subjectStatsData = stats?.subjectStats || [];
+  const sectionStatsData = stats?.sectionStats || [];
 
   return (
     <div className="min-h-screen bg-slate-50/80 dark:bg-[#060913] text-slate-900 dark:text-slate-100 transition-colors duration-300 pb-16 relative overflow-hidden">
@@ -110,9 +112,9 @@ export default function DashboardPage() {
       </header>
 
       {/* Main Dashboard Container */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 pt-8 relative z-10">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 pt-8 relative z-10 space-y-8">
         {/* Title & Semester Selector bar */}
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
             <div className="flex items-center gap-2 text-xs font-mono font-bold uppercase tracking-wider text-emerald-600 dark:text-emerald-400 mb-1">
               <Sparkles className="w-3.5 h-3.5" /> {decodedBranch} Department &bull; Cohort {decodedBatch}
@@ -180,8 +182,11 @@ export default function DashboardPage() {
             {/* Asymmetric Hero Summary Cards */}
             <SummaryCards stats={stats} metric={metric} />
 
+            {/* Section Comparison Cards */}
+            <SectionComparison sectionStats={sectionStatsData} />
+
             {/* Charts Grid */}
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 mb-8">
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
               {/* Distribution Bar Chart (7 cols) */}
               <div className="lg:col-span-7 ui-card p-6 border-t-2 border-t-indigo-500">
                 <DistributionChart
@@ -198,7 +203,7 @@ export default function DashboardPage() {
             </div>
 
             {/* Subject Analysis & Leaderboard Grid */}
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 mb-8">
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
               {/* Subject Breakdown (5 cols) */}
               <div className="lg:col-span-5 ui-card p-6 border-t-2 border-t-emerald-500">
                 <SubjectAnalysis subjectStats={subjectStatsData} />

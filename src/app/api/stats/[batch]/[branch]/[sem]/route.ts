@@ -21,6 +21,9 @@ export async function GET(
       where: {
         semester: { number: semesterNumber },
         student: { batchId: batch.id, branchId: branch.id }
+      },
+      include: {
+        student: true
       }
     });
 
@@ -34,6 +37,38 @@ export async function GET(
       semesterResults.map(r => r.creditsRegistered),
       semesterResults.map(r => r.creditsEarned)
     );
+
+    // Section-wise analysis (Section A vs Section B vs Section C)
+    const sectionGroups = new Map<string, { cgpas: number[]; sgpas: number[]; passed: number; failed: number }>();
+    
+    for (const r of semesterResults) {
+      const sec = r.student.section || 'A';
+      if (!sectionGroups.has(sec)) {
+        sectionGroups.set(sec, { cgpas: [], sgpas: [], passed: 0, failed: 0 });
+      }
+      const g = sectionGroups.get(sec)!;
+      if (r.cgpa !== null) g.cgpas.push(r.cgpa);
+      if (r.sgpa !== null) g.sgpas.push(r.sgpa);
+      if (r.creditsEarned >= r.creditsRegistered) g.passed++;
+      else g.failed++;
+    }
+
+    const sectionStats = Array.from(sectionGroups.entries()).map(([section, data]) => {
+      const avgCgpa = data.cgpas.length ? data.cgpas.reduce((a, b) => a + b, 0) / data.cgpas.length : 0;
+      const avgSgpa = data.sgpas.length ? data.sgpas.reduce((a, b) => a + b, 0) / data.sgpas.length : 0;
+      const topCgpa = data.cgpas.length ? Math.max(...data.cgpas) : 0;
+      const total = data.passed + data.failed;
+      const passRate = total ? (data.passed / total) * 100 : 0;
+
+      return {
+        section,
+        count: total,
+        avgCgpa: Number(avgCgpa.toFixed(2)),
+        avgSgpa: Number(avgSgpa.toFixed(2)),
+        topCgpa: Number(topCgpa.toFixed(2)),
+        passRate: Number(passRate.toFixed(1))
+      };
+    }).sort((a, b) => a.section.localeCompare(b.section));
 
     const subjectResults = await prisma.subjectResult.findMany({
       where: {
@@ -63,7 +98,7 @@ export async function GET(
       if (sr.cieMarks !== null) group.cieMarks.push(sr.cieMarks);
       if (sr.attendance !== null) group.attendances.push(sr.attendance);
       
-      if (sr.grade === 'F') group.failed++;
+      if (['F', 'DX', 'NE', 'AB', 'NP'].includes(sr.grade)) group.failed++;
       else group.passed++;
     }
 
@@ -74,9 +109,9 @@ export async function GET(
 
       return {
         subject: group.subject,
-        avgGpa,
-        avgCie,
-        avgAttendance: avgAtt,
+        avgGpa: Number(avgGpa.toFixed(2)),
+        avgCie: Number(avgCie.toFixed(1)),
+        avgAttendance: Number(avgAtt.toFixed(1)),
         passed: group.passed,
         failed: group.failed,
         total: group.passed + group.failed
@@ -88,6 +123,7 @@ export async function GET(
       sgpa: { stats: sgpaStats },
       passRate: passFail,
       totalStudents: semesterResults.length,
+      sectionStats,
       subjectStats
     });
   } catch (error) {

@@ -1,10 +1,11 @@
 'use client';
 
 import React, { useState, useMemo } from 'react';
-import { Search, ChevronUp, ChevronDown, Trophy, Medal, Award, ChevronLeft, ChevronRight, X } from 'lucide-react';
+import { Search, ChevronUp, ChevronDown, Trophy, Medal, Award, ChevronLeft, ChevronRight, X, Filter } from 'lucide-react';
 
 export default function Leaderboard({ students, onStudentClick }: { students: any[], onStudentClick: (s: any) => void }) {
   const [searchTerm, setSearchTerm] = useState('');
+  const [selectedSection, setSelectedSection] = useState('ALL');
   const [sortConfig, setSortConfig] = useState({ key: 'cgpa', direction: 'desc' });
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 12;
@@ -20,10 +21,15 @@ export default function Leaderboard({ students, onStudentClick }: { students: an
   const filteredAndSorted = useMemo(() => {
     let result = [...students];
 
+    if (selectedSection !== 'ALL') {
+      result = result.filter(s => (s.section || 'A').toUpperCase() === selectedSection);
+    }
+
     if (searchTerm) {
       const lower = searchTerm.toLowerCase();
       result = result.filter(s => 
         (s.Name && s.Name.toLowerCase().includes(lower)) || 
+        (s.name && s.name.toLowerCase().includes(lower)) || 
         (s.usn && s.usn.toLowerCase().includes(lower)) ||
         (s.USN && s.USN.toLowerCase().includes(lower))
       );
@@ -39,7 +45,7 @@ export default function Leaderboard({ students, onStudentClick }: { students: an
     });
 
     return result;
-  }, [students, searchTerm, sortConfig]);
+  }, [students, searchTerm, selectedSection, sortConfig]);
 
   const totalPages = Math.ceil(filteredAndSorted.length / itemsPerPage) || 1;
   const paginatedData = filteredAndSorted.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
@@ -75,37 +81,59 @@ export default function Leaderboard({ students, onStudentClick }: { students: an
   };
 
   return (
-    <div className="w-full flex flex-col justify-between h-[380px]">
+    <div className="w-full flex flex-col justify-between h-[420px]">
       {/* Search & Header controls */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
         <div>
           <h3 className="text-base font-bold font-display text-slate-900 dark:text-white">
             Class Leaderboard
           </h3>
-          <p className="text-xs font-medium text-slate-500 dark:text-slate-400">Click any student row to view full performance radar</p>
+          <p className="text-xs font-medium text-slate-500 dark:text-slate-400">Click any student row to view full academic profile</p>
         </div>
 
-        {/* Search Bar */}
-        <div className="relative w-full sm:w-64">
-          <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-cyan-500" />
-          <input
-            type="text"
-            value={searchTerm}
-            onChange={(e) => {
-              setSearchTerm(e.target.value);
-              setCurrentPage(1);
-            }}
-            placeholder="Search USN or Name..."
-            className="w-full pl-9 pr-8 py-1.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-white/80 dark:bg-slate-900/80 text-xs font-medium text-slate-900 dark:text-white focus:outline-none focus:border-cyan-500 shadow-sm"
-          />
-          {searchTerm && (
-            <button 
-              onClick={() => setSearchTerm('')}
-              className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
-            >
-              <X className="w-3.5 h-3.5" />
-            </button>
-          )}
+        <div className="flex items-center gap-2">
+          {/* Section Filter Pills */}
+          <div className="flex items-center p-1 bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl text-xs font-semibold">
+            {['ALL', 'A', 'B', 'C'].map((sec) => (
+              <button
+                key={sec}
+                onClick={() => {
+                  setSelectedSection(sec);
+                  setCurrentPage(1);
+                }}
+                className={`px-2.5 py-1 rounded-lg transition-all ${
+                  selectedSection === sec
+                    ? 'bg-indigo-600 text-white font-bold shadow-sm'
+                    : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+                }`}
+              >
+                {sec === 'ALL' ? 'All Sec' : `Sec ${sec}`}
+              </button>
+            ))}
+          </div>
+
+          {/* Search Bar */}
+          <div className="relative w-full sm:w-56">
+            <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-indigo-500" />
+            <input
+              type="text"
+              value={searchTerm}
+              onChange={(e) => {
+                setSearchTerm(e.target.value);
+                setCurrentPage(1);
+              }}
+              placeholder="Search USN or Name..."
+              className="w-full pl-9 pr-8 py-1.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-white/80 dark:bg-slate-900/80 text-xs font-medium text-slate-900 dark:text-white focus:outline-none focus:border-indigo-500 shadow-sm"
+            />
+            {searchTerm && (
+              <button 
+                onClick={() => setSearchTerm('')}
+                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+              >
+                <X className="w-3.5 h-3.5" />
+              </button>
+            )}
+          </div>
         </div>
       </div>
 
@@ -117,6 +145,7 @@ export default function Leaderboard({ students, onStudentClick }: { students: an
               <th className="py-2.5 px-3 font-extrabold">Rank</th>
               <th className="py-2.5 px-3 font-extrabold">USN</th>
               <th className="py-2.5 px-3 font-extrabold">Student Name</th>
+              <th className="py-2.5 px-3 font-extrabold">Sec</th>
               <th 
                 onClick={() => handleSort('cgpa')}
                 className="py-2.5 px-3 font-extrabold cursor-pointer hover:text-emerald-500 select-none"
@@ -139,7 +168,7 @@ export default function Leaderboard({ students, onStudentClick }: { students: an
           <tbody className="divide-y divide-slate-100 dark:divide-slate-800/60 font-sans">
             {paginatedData.length === 0 ? (
               <tr>
-                <td colSpan={6} className="text-center py-8 text-slate-400 font-medium">
+                <td colSpan={7} className="text-center py-8 text-slate-400 font-medium">
                   No matching students found
                 </td>
               </tr>
@@ -148,29 +177,44 @@ export default function Leaderboard({ students, onStudentClick }: { students: an
                 const globalIndex = (currentPage - 1) * itemsPerPage + idx;
                 const studentUsn = student.usn || student.USN || '';
                 const studentName = student.name || student.Name || 'Student';
+                const section = student.section || student.Section || 'A';
                 const cgpaVal = Number(student.cgpa || student.overallCgpa || 0).toFixed(2);
                 const sgpaVal = Number(student.sgpa || 0).toFixed(2);
-                const backlogs = Number(student.backlogCount || student.backlogs || 0);
+                const activeBacklogs = Number(student.activeBacklogs || 0);
+                const clearedBacklogs = Number(student.clearedBacklogs || 0);
 
                 return (
                   <tr
                     key={studentUsn + idx}
                     onClick={() => onStudentClick(student)}
-                    className="hover:bg-gradient-to-r hover:from-emerald-500/10 hover:via-teal-500/5 hover:to-indigo-500/10 cursor-pointer transition-all"
+                    className="hover:bg-gradient-to-r hover:from-indigo-500/10 hover:via-teal-500/5 hover:to-emerald-500/10 cursor-pointer transition-all"
                   >
                     <td className="py-2.5 px-3">{getRankBadge(globalIndex)}</td>
                     <td className="py-2.5 px-3 font-mono text-slate-600 dark:text-slate-400 font-bold">{studentUsn}</td>
-                    <td className="py-2.5 px-3 font-bold text-slate-900 dark:text-white">{studentName}</td>
+                    <td className="py-2.5 px-3 font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                      {studentName}
+                    </td>
+                    <td className="py-2.5 px-3">
+                      <span className="px-2 py-0.5 rounded-md bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 font-mono font-bold text-[11px]">
+                        Sec {section}
+                      </span>
+                    </td>
                     <td className="py-2.5 px-3 font-black font-display text-emerald-600 dark:text-emerald-400 text-sm">{cgpaVal}</td>
                     <td className="py-2.5 px-3 font-bold text-indigo-600 dark:text-indigo-400">{sgpaVal}</td>
                     <td className="py-2.5 px-3 text-right">
-                      {backlogs === 0 ? (
-                        <span className="inline-flex px-2.5 py-0.5 rounded-full bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 text-[10px] font-extrabold border border-emerald-500/30 uppercase tracking-wider shadow-sm">
-                          PASS
-                        </span>
+                      {activeBacklogs === 0 ? (
+                        clearedBacklogs > 0 ? (
+                          <span className="inline-flex px-2 py-0.5 rounded-full bg-cyan-500/15 text-cyan-700 dark:text-cyan-300 text-[10px] font-extrabold border border-cyan-500/30 uppercase tracking-wider shadow-sm">
+                            Backlog Cleared
+                          </span>
+                        ) : (
+                          <span className="inline-flex px-2.5 py-0.5 rounded-full bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 text-[10px] font-extrabold border border-emerald-500/30 uppercase tracking-wider shadow-sm">
+                            PASS
+                          </span>
+                        )
                       ) : (
                         <span className="inline-flex px-2.5 py-0.5 rounded-full bg-rose-500/15 text-rose-700 dark:text-rose-300 text-[10px] font-extrabold border border-rose-500/30 uppercase tracking-wider shadow-sm">
-                          {backlogs} Backlog{backlogs > 1 ? 's' : ''}
+                          {activeBacklogs} Backlog{activeBacklogs > 1 ? 's' : ''}
                         </span>
                       )}
                     </td>
@@ -191,9 +235,9 @@ export default function Leaderboard({ students, onStudentClick }: { students: an
           <button
             onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
             disabled={currentPage === 1}
-            className="p-1 rounded-lg border border-slate-200 dark:border-slate-800 disabled:opacity-30 hover:bg-emerald-500/10 hover:border-emerald-500 transition-colors"
+            className="p-1 rounded-lg border border-slate-200 dark:border-slate-800 disabled:opacity-30 hover:bg-indigo-500/10 hover:border-indigo-500 transition-colors"
           >
-            <ChevronLeft className="w-4 h-4 text-emerald-500" />
+            <ChevronLeft className="w-4 h-4 text-indigo-500" />
           </button>
           <span className="px-2 font-mono text-slate-700 dark:text-slate-300 font-bold">
             {currentPage} / {totalPages}
@@ -201,9 +245,9 @@ export default function Leaderboard({ students, onStudentClick }: { students: an
           <button
             onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
             disabled={currentPage === totalPages}
-            className="p-1 rounded-lg border border-slate-200 dark:border-slate-800 disabled:opacity-30 hover:bg-emerald-500/10 hover:border-emerald-500 transition-colors"
+            className="p-1 rounded-lg border border-slate-200 dark:border-slate-800 disabled:opacity-30 hover:bg-indigo-500/10 hover:border-indigo-500 transition-colors"
           >
-            <ChevronRight className="w-4 h-4 text-emerald-500" />
+            <ChevronRight className="w-4 h-4 text-indigo-500" />
           </button>
         </div>
       </div>

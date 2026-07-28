@@ -1,56 +1,32 @@
 'use client';
 
-import React, { useEffect, useState, useRef } from 'react';
-import { useParams } from 'next/navigation';
+import React, { useEffect, useState } from 'react';
+import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { motion, AnimatePresence } from 'framer-motion';
 import SummaryCards from '@/components/dashboard/SummaryCards';
 import DistributionChart from '@/components/charts/DistributionChart';
 import GradeBandChart from '@/components/charts/GradeBandChart';
-import BoxPlotChart from '@/components/charts/BoxPlotChart';
-import ScatterChart from '@/components/charts/ScatterChart';
 import SubjectAnalysis from '@/components/dashboard/SubjectAnalysis';
 import Leaderboard from '@/components/dashboard/Leaderboard';
+import StudentDetailModal from '@/components/modals/StudentDetailModal';
+import CompareModal from '@/components/modals/CompareModal';
 import { ThemeToggle } from '@/components/ui/ThemeToggle';
-import { ArrowUpRight } from 'lucide-react';
-
-const CountUp = ({ value, decimals = 2 }: { value: number, decimals?: number }) => {
-  const [count, setCount] = useState(0);
-  const prevValue = useRef(0);
-
-  useEffect(() => {
-    const duration = 1000;
-    const frames = 60;
-    const step = (value - prevValue.current) / (duration / (1000 / frames));
-    let current = prevValue.current;
-    
-    let req: number;
-    const animate = () => {
-      current += step;
-      if ((step > 0 && current >= value) || (step < 0 && current <= value)) {
-        setCount(value);
-        prevValue.current = value;
-      } else {
-        setCount(current);
-        req = requestAnimationFrame(animate);
-      }
-    };
-    
-    req = requestAnimationFrame(animate);
-    return () => cancelAnimationFrame(req);
-  }, [value]);
-
-  return <span>{count.toFixed(decimals)}</span>;
-};
+import { ArrowLeft, Users, Layers, Award, Sparkles } from 'lucide-react';
 
 export default function DashboardPage() {
   const params = useParams();
+  const router = useRouter();
   const { batch, branch, semester } = params;
 
   const [stats, setStats] = useState<any>(null);
   const [students, setStudents] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [metric, setMetric] = useState<'cgpa' | 'sgpa'>('cgpa');
+
+  // Modal states
+  const [selectedStudentUsn, setSelectedStudentUsn] = useState<string | null>(null);
+  const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
+  const [isCompareModalOpen, setIsCompareModalOpen] = useState(false);
 
   useEffect(() => {
     async function fetchData() {
@@ -62,168 +38,184 @@ export default function DashboardPage() {
         
         const statsData = statsRes.ok ? await statsRes.json() : null;
         const studentsData = studentsRes.ok ? await studentsRes.json() : [];
-
+        
         setStats(statsData);
-        setStudents(studentsData);
+        setStudents(Array.isArray(studentsData) ? studentsData : []);
+        setLoading(false);
       } catch (err) {
         console.error(err);
-      } finally {
         setLoading(false);
       }
     }
-    fetchData();
+
+    if (batch && branch && semester) {
+      fetchData();
+    }
   }, [batch, branch, semester]);
 
-  const decodedBatch = decodeURIComponent(batch as string);
-  const decodedBranch = decodeURIComponent(branch as string);
+  const decodedBatch = decodeURIComponent((batch as string) || '');
+  const decodedBranch = decodeURIComponent((branch as string) || '');
+  const currentSem = Number(semester) || 1;
 
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-slate-50 dark:bg-slate-950 p-6 md:p-12">
-        <div className="animate-pulse space-y-12">
-          <div className="h-8 bg-slate-200 dark:bg-slate-800 rounded w-1/4"></div>
-          <div className="h-48 bg-slate-200 dark:bg-slate-800 rounded-3xl w-full"></div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="h-64 bg-slate-200 dark:bg-slate-800 rounded-3xl col-span-2"></div>
-            <div className="h-64 bg-slate-200 dark:bg-slate-800 rounded-3xl"></div>
-          </div>
-        </div>
-      </div>
-    );
-  }
+  const handleStudentClick = (student: any) => {
+    setSelectedStudentUsn(student.USN || student.usn);
+    setIsDetailModalOpen(true);
+  };
 
-  const currentStats: any = stats?.[metric] || {};
+  const currentStats = stats?.[metric] || {};
   const distributionData = currentStats?.distribution || [];
   const gradeBandsData = currentStats?.gradeBands || [];
   const subjectStatsData = stats?.subjectStats || [];
-  
-  const boxPlotValues = students.map((s: any) => s[metric]);
-  const heroValue = currentStats?.mean || 0;
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 p-4 md:p-8 transition-colors duration-300 relative">
-      {/* Texture */}
-      <div className="absolute inset-0 z-0 bg-grid-pattern opacity-50 dark:opacity-20 pointer-events-none" />
+    <div className="min-h-screen bg-slate-50/70 dark:bg-[#090d16] text-slate-900 dark:text-slate-100 transition-colors duration-300 pb-16">
+      {/* Header */}
+      <header className="sticky top-0 z-30 bg-white/80 dark:bg-[#090d16]/80 backdrop-blur-md border-b border-slate-200/80 dark:border-slate-800/80 px-6 py-4">
+        <div className="max-w-7xl mx-auto flex items-center justify-between">
+          <nav className="flex items-center space-x-2 text-sm font-medium">
+            <Link href="/" className="text-slate-500 hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors">
+              Batches
+            </Link>
+            <span className="text-slate-300 dark:text-slate-700">/</span>
+            <Link href={`/${batch}`} className="text-slate-500 hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors">
+              {decodedBatch}
+            </Link>
+            <span className="text-slate-300 dark:text-slate-700">/</span>
+            <Link href={`/${batch}/${branch}`} className="text-slate-500 hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors">
+              {decodedBranch}
+            </Link>
+            <span className="text-slate-300 dark:text-slate-700">/</span>
+            <span className="text-slate-900 dark:text-slate-100 font-semibold">Semester {semester}</span>
+          </nav>
 
-      <div className="relative z-10 max-w-7xl mx-auto">
-        {/* Header Navigation */}
-        <header className="flex flex-col md:flex-row justify-between items-start md:items-center mb-12 gap-6">
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => setIsCompareModalOpen(true)}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-800 bg-slate-100/80 dark:bg-slate-850 hover:bg-emerald-500/10 hover:border-emerald-500 text-xs font-semibold transition-all"
+            >
+              <Users className="w-3.5 h-3.5 text-emerald-500" /> Compare Students
+            </button>
+            <ThemeToggle />
+          </div>
+        </div>
+      </header>
+
+      {/* Main Dashboard Container */}
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 pt-8">
+        {/* Title & Semester Selector bar */}
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
           <div>
-            <nav className="flex items-center space-x-2 text-sm font-medium mb-3 overflow-x-auto whitespace-nowrap scrollbar-hide text-slate-500 dark:text-slate-400">
-              <Link href="/" className="hover:text-slate-800 dark:hover:text-slate-200 transition-colors">Batches</Link>
-              <span>/</span>
-              <Link href={`/${batch}`} className="hover:text-slate-800 dark:hover:text-slate-200 transition-colors">{decodedBatch}</Link>
-              <span>/</span>
-              <Link href={`/${batch}/${branch}`} className="hover:text-slate-800 dark:hover:text-slate-200 transition-colors">{decodedBranch}</Link>
-              <span>/</span>
-              <span className="text-slate-800 dark:text-slate-200">S{semester}</span>
-            </nav>
-            <h1 className="text-4xl font-black font-display text-slate-900 dark:text-white tracking-tight">
-              Cohort Overview
+            <div className="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400 font-mono uppercase tracking-wider mb-1">
+              <span>{decodedBranch} Department</span> &bull; <span>Cohort {decodedBatch}</span>
+            </div>
+            <h1 className="text-3xl font-extrabold font-display tracking-tight text-slate-900 dark:text-white">
+              Semester {semester} Analytics
             </h1>
           </div>
-          <div className="flex items-center gap-6">
-            <div className="flex bg-white/50 dark:bg-slate-900/50 p-1 rounded-xl border border-slate-200 dark:border-slate-800 backdrop-blur-md">
+
+          {/* Controls: Metric Switcher & Semester Quick Tabs */}
+          <div className="flex flex-wrap items-center gap-3">
+            {/* Semester Tabs */}
+            <div className="flex bg-slate-200/60 dark:bg-slate-800/60 p-1 rounded-xl text-xs font-semibold">
+              {[1, 2, 3, 4, 5, 6, 7, 8].map((sNum) => (
+                <button
+                  key={sNum}
+                  onClick={() => router.push(`/${batch}/${branch}/${sNum}`)}
+                  className={`px-3 py-1.5 rounded-lg transition-all ${
+                    currentSem === sNum
+                      ? 'bg-white dark:bg-slate-900 text-emerald-600 dark:text-emerald-400 shadow-sm'
+                      : 'text-slate-500 hover:text-slate-900 dark:hover:text-white'
+                  }`}
+                >
+                  S{sNum}
+                </button>
+              ))}
+            </div>
+
+            {/* Metric Switcher */}
+            <div className="flex bg-slate-200/60 dark:bg-slate-800/60 p-1 rounded-xl text-xs font-semibold">
               <button
                 onClick={() => setMetric('cgpa')}
-                className={`px-5 py-2 rounded-lg text-sm font-bold transition-all ${metric === 'cgpa' ? 'bg-white dark:bg-slate-800 text-emerald-600 dark:text-emerald-400 shadow-soft' : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'}`}
+                className={`px-3 py-1.5 rounded-lg transition-all ${
+                  metric === 'cgpa'
+                    ? 'bg-emerald-600 text-white shadow-sm'
+                    : 'text-slate-500 hover:text-slate-900 dark:hover:text-white'
+                }`}
               >
                 CGPA
               </button>
               <button
                 onClick={() => setMetric('sgpa')}
-                className={`px-5 py-2 rounded-lg text-sm font-bold transition-all ${metric === 'sgpa' ? 'bg-white dark:bg-slate-800 text-emerald-600 dark:text-emerald-400 shadow-soft' : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'}`}
+                className={`px-3 py-1.5 rounded-lg transition-all ${
+                  metric === 'sgpa'
+                    ? 'bg-emerald-600 text-white shadow-sm'
+                    : 'text-slate-500 hover:text-slate-900 dark:hover:text-white'
+                }`}
               >
                 SGPA
               </button>
             </div>
-            <ThemeToggle />
           </div>
-        </header>
+        </div>
 
-        {/* Hero Section & Secondary Stats */}
-        <section className="mb-10 grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Dominant Hero Metric */}
-          <motion.div 
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
-            className="lg:col-span-2 glass-card rounded-3xl p-8 md:p-12 flex flex-col justify-between relative overflow-hidden"
-          >
-            <div className="absolute top-0 right-0 w-64 h-64 bg-emerald-500/10 blur-[100px] rounded-full pointer-events-none" />
-            <h2 className="text-sm font-bold tracking-widest uppercase text-slate-500 dark:text-slate-400 mb-6">
-              Batch Average {metric.toUpperCase()}
-            </h2>
-            <div className="flex items-baseline gap-4">
-              <span className="text-8xl md:text-9xl font-black font-display text-slate-900 dark:text-white tracking-tighter">
-                <CountUp value={heroValue} />
-              </span>
-              <span className="text-2xl font-medium text-emerald-500 flex items-center">
-                <ArrowUpRight className="w-8 h-8" />
-              </span>
+        {loading ? (
+          <div className="space-y-6">
+            <div className="h-44 bg-slate-200/60 dark:bg-slate-800/60 rounded-xl animate-pulse" />
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="h-80 bg-slate-200/60 dark:bg-slate-800/60 rounded-xl animate-pulse" />
+              <div className="h-80 bg-slate-200/60 dark:bg-slate-800/60 rounded-xl animate-pulse" />
             </div>
-          </motion.div>
+          </div>
+        ) : (
+          <>
+            {/* Asymmetric Hero Summary Cards */}
+            <SummaryCards stats={stats} metric={metric} />
 
-          {/* Secondary Stats Chips */}
-          <motion.div 
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.6, delay: 0.2, ease: [0.16, 1, 0.3, 1] }}
-            className="lg:col-span-1"
-          >
-            <SummaryCards stats={currentStats} />
-          </motion.div>
-        </section>
+            {/* Charts Grid */}
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 mb-8">
+              {/* Distribution Bar Chart (7 cols) */}
+              <div className="lg:col-span-7 ui-card p-6">
+                <DistributionChart
+                  data={distributionData}
+                  title={`${metric.toUpperCase()} Distribution`}
+                  metric={metric}
+                />
+              </div>
 
-        {/* Charts: Asymmetric Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
-          <motion.div 
-            initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.3 }}
-            className="lg:col-span-2 glass-card p-6 rounded-3xl"
-          >
-            <DistributionChart data={distributionData} title={`${metric.toUpperCase()} Distribution`} metric={metric} />
-          </motion.div>
-          <motion.div 
-            initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.4 }}
-            className="lg:col-span-1 glass-card p-6 rounded-3xl flex items-center justify-center"
-          >
-            <GradeBandChart gradeBands={gradeBandsData} metric={metric} />
-          </motion.div>
-        </div>
+              {/* Grade Band Pie/Donut Chart (5 cols) */}
+              <div className="lg:col-span-5 ui-card p-6">
+                <GradeBandChart data={gradeBandsData} />
+              </div>
+            </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-          <motion.div 
-            initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.5 }}
-            className="glass-card p-6 rounded-3xl"
-          >
-            <BoxPlotChart values={boxPlotValues} title={`${metric.toUpperCase()} Spread`} />
-          </motion.div>
-          <motion.div 
-            initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.6 }}
-            className="glass-card p-6 rounded-3xl"
-          >
-            <ScatterChart students={students} />
-          </motion.div>
-        </div>
+            {/* Subject Analysis & Leaderboard Grid */}
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 mb-8">
+              {/* Subject Breakdown (5 cols) */}
+              <div className="lg:col-span-5 ui-card p-6">
+                <SubjectAnalysis subjectStats={subjectStatsData} />
+              </div>
 
-        {/* Subject Analysis */}
-        {subjectStatsData.length > 0 && (
-          <motion.section 
-            initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.7 }}
-            className="mb-6 glass-card p-6 md:p-10 rounded-3xl"
-          >
-            <SubjectAnalysis subjectStats={subjectStatsData} />
-          </motion.section>
+              {/* Leaderboard Table (7 cols) */}
+              <div className="lg:col-span-7 ui-card p-6">
+                <Leaderboard students={students} onStudentClick={handleStudentClick} />
+              </div>
+            </div>
+          </>
         )}
+      </main>
 
-        {/* Leaderboard */}
-        <motion.section 
-          initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.8 }}
-          className="glass-card p-6 md:p-10 rounded-3xl"
-        >
-          <Leaderboard students={students} onStudentClick={(student) => console.log('Clicked', student)} />
-        </motion.section>
-      </div>
+      {/* Modals */}
+      <StudentDetailModal
+        usn={selectedStudentUsn}
+        isOpen={isDetailModalOpen}
+        onClose={() => setIsDetailModalOpen(false)}
+      />
+
+      <CompareModal
+        students={students}
+        isOpen={isCompareModalOpen}
+        onClose={() => setIsCompareModalOpen(false)}
+      />
     </div>
   );
 }

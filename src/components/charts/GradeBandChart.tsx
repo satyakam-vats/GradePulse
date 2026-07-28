@@ -9,57 +9,78 @@ import {
   ResponsiveContainer,
   Legend
 } from 'recharts';
-import { motion } from 'framer-motion';
+import { PieChart as PieIcon } from 'lucide-react';
 
-const COLORS = ['#10b981', '#3b82f6', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899', '#64748b'];
+const COLORS = ['#10b981', '#14b8a6', '#06b6d4', '#0284c7', '#6366f1', '#f59e0b', '#ef4444'];
 
-export default function GradeBandChart({ gradeBands, metric }: { gradeBands: any[], metric: string }) {
-  if (!gradeBands || gradeBands.length === 0) return <div>No data available</div>;
+export default function GradeBandChart({ data, gradeBands }: { data?: any[], gradeBands?: any[] }) {
+  const chartData = data || gradeBands || [];
 
-  const total = gradeBands.reduce((sum, item) => sum + item.count, 0);
+  if (!chartData || chartData.length === 0) {
+    return (
+      <div className="h-[340px] flex items-center justify-center text-slate-400 text-sm">
+        No grade band data available
+      </div>
+    );
+  }
+
+  const total = chartData.reduce((sum, item) => sum + (item.count || 0), 0);
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.5, delay: 0.1 }}
-      className="w-full h-[400px] flex flex-col relative"
-    >
-      <h3 className="text-lg font-semibold mb-4 text-slate-800 dark:text-slate-200">
-        {metric.toUpperCase()} Grade Bands
-      </h3>
-      
-      <div className="flex-1 relative">
+    <div className="w-full h-[380px] flex flex-col justify-between">
+      <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center gap-2">
+          <PieIcon className="w-4 h-4 text-emerald-500" />
+          <h3 className="text-base font-bold font-display text-slate-900 dark:text-white">
+            Grade Band Breakdown
+          </h3>
+        </div>
+        <span className="text-xs text-slate-400 font-mono">Cohort Spread</span>
+      </div>
+
+      <div className="w-full flex-grow relative">
         <ResponsiveContainer width="100%" height="100%">
           <PieChart>
             <Pie
-              data={gradeBands}
+              data={chartData}
               cx="50%"
-              cy="50%"
-              innerRadius={80}
-              outerRadius={120}
-              paddingAngle={2}
+              cy="45%"
+              innerRadius={65}
+              outerRadius={95}
+              paddingAngle={3}
               dataKey="count"
               nameKey="band"
-              animationDuration={1500}
+              animationDuration={600}
             >
-              {gradeBands.map((entry, index) => (
+              {chartData.map((entry, index) => (
                 <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
               ))}
             </Pie>
             <Tooltip 
-              contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
+              content={({ active, payload }) => {
+                if (active && payload && payload.length) {
+                  const item = payload[0];
+                  const pct = total > 0 ? ((Number(item.value) / total) * 100).toFixed(1) : '0';
+                  return (
+                    <div className="p-3 rounded-xl bg-slate-900 text-white border border-slate-800 shadow-xl text-xs font-sans">
+                      <p className="font-semibold text-emerald-400 mb-1">Grade Band: {item.name}</p>
+                      <p className="text-slate-300">Students: <span className="text-white font-bold">{item.value}</span> ({pct}%)</p>
+                    </div>
+                  );
+                }
+                return null;
+              }}
             />
             <Legend verticalAlign="bottom" height={36} iconType="circle" />
           </PieChart>
         </ResponsiveContainer>
-        
-        {/* Center Text */}
-        <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none pb-8">
-          <span className="text-3xl font-bold text-slate-800 dark:text-slate-100">{total}</span>
-          <span className="text-xs text-slate-500 dark:text-slate-400">Students</span>
+
+        {/* Center Total Count */}
+        <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none pb-12">
+          <span className="text-2xl font-bold font-display text-slate-900 dark:text-white">{total}</span>
+          <span className="text-xs text-slate-400 font-medium">Students</span>
         </div>
       </div>
-    </motion.div>
+    </div>
   );
 }

@@ -1,160 +1,103 @@
 @import "tailwindcss";
 
 @theme {
-  /* Primary - Emerald (Sleek, confident, not AI-blue) */
-  --color-primary-50: #ecfdf5;
-  --color-primary-100: #d1fae5;
-  --color-primary-200: #a7f3d0;
-  --color-primary-300: #6ee7b7;
-  --color-primary-400: #34d399;
-  --color-primary-500: #10b981;
-  --color-primary-600: #059669; /* main */
-  --color-primary-700: #047857;
-  --color-primary-800: #065f46;
-  --color-primary-900: #064e3b;
-  --color-primary-950: #022c22;
+  /* Colors */
+  --color-slate-950: #090d16;
+  --color-slate-900: #111827;
+  --color-slate-850: #161e31;
+  --color-slate-800: #1f293d;
 
-  /* Accent - Amber */
-  --color-accent-50: #fffbeb;
-  --color-accent-100: #fef3c7;
-  --color-accent-200: #fde68a;
-  --color-accent-300: #fcd34d;
-  --color-accent-400: #fbbf24;
-  --color-accent-500: #f59e0b; /* main */
-  --color-accent-600: #d97706;
-  --color-accent-700: #b45309;
-  --color-accent-800: #92400e;
-  --color-accent-900: #78350f;
-  --color-accent-950: #451a03;
-
-  /* Surface - Slate */
-  --color-surface-50: #f8fafc;
-  --color-surface-100: #f1f5f9;
-  --color-surface-200: #e2e8f0;
-  --color-surface-300: #cbd5e1;
-  --color-surface-400: #94a3b8;
-  --color-surface-500: #64748b;
-  --color-surface-600: #475569;
-  --color-surface-700: #334155;
-  --color-surface-800: #1e293b;
-  --color-surface-900: #0f172a;
-  --color-surface-950: #020617;
-
+  --color-emerald-500: #10b981;
+  --color-emerald-600: #059669;
+  
   /* Fonts */
-  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  --font-sans: var(--font-inter), var(--font-jakarta), ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-outfit), var(--font-jakarta), ui-sans-serif, system-ui, sans-serif;
   --font-mono: var(--font-jetbrains-mono), ui-monospace, monospace;
-  --font-display: var(--font-outfit), ui-sans-serif, system-ui, sans-serif;
-
-  /* Shadows */
-  --shadow-soft: 0 4px 20px -2px rgba(0, 0, 0, 0.05);
-  --shadow-glow: 0 0 15px rgba(16, 185, 129, 0.3);
-
-  /* Animations */
-  --animate-fade-in: fade-in 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-  --animate-slide-up: slide-up 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-  --animate-slide-in-right: slide-in-right 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-  --animate-count-up: count-up 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-  --animate-shimmer: shimmer 2.5s infinite linear;
-
-  @keyframes fade-in {
-    0% { opacity: 0; }
-    100% { opacity: 1; }
-  }
-  @keyframes slide-up {
-    0% { transform: translateY(20px); opacity: 0; }
-    100% { transform: translateY(0); opacity: 1; }
-  }
-  @keyframes slide-in-right {
-    0% { transform: translateX(20px); opacity: 0; }
-    100% { transform: translateX(0); opacity: 1; }
-  }
-  @keyframes count-up {
-    0% { transform: translateY(10px); opacity: 0; }
-    100% { transform: translateY(0); opacity: 1; }
-  }
-  @keyframes shimmer {
-    0% { background-position: -200% 0; }
-    100% { background-position: 200% 0; }
-  }
 }
 
-/* Base styles */
 :root {
-  --background: #ffffff;
+  --background: #f8fafc;
   --foreground: #0f172a;
-  --border-color: #e2e8f0;
+  --card-bg: #ffffff;
+  --card-border: #e2e8f0;
+  --muted-bg: #f1f5f9;
+  --muted-fg: #64748b;
+  --primary-accent: #059669;
+  --primary-accent-light: #ecfdf5;
+  --shadow-soft: 0 4px 20px -2px rgba(15, 23, 42, 0.05);
+  --shadow-elevated: 0 10px 30px -5px rgba(15, 23, 42, 0.08);
 }
 
 .dark {
-  --background: #020617; /* Very deep slate, almost black */
+  --background: #090d16;
   --foreground: #f8fafc;
-  --border-color: #1e293b;
+  --card-bg: #111827;
+  --card-border: #1e293b;
+  --muted-bg: #1b2436;
+  --muted-fg: #94a3b8;
+  --primary-accent: #10b981;
+  --primary-accent-light: rgba(16, 185, 129, 0.12);
+  --shadow-soft: 0 4px 25px -2px rgba(0, 0, 0, 0.4);
+  --shadow-elevated: 0 12px 35px -5px rgba(0, 0, 0, 0.6);
 }
 
 body {
   background-color: var(--background);
   color: var(--foreground);
-  transition: background-color 0.3s ease, color 0.3s ease;
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  transition: background-color 0.2s ease, color 0.2s ease;
 }
 
-/* Display Font Class */
+/* Typography utilities */
 .font-display {
   font-family: var(--font-display);
 }
 
-/* Glassmorphism utility - refined */
-.glass-card {
-  background: rgba(255, 255, 255, 0.6);
-  backdrop-filter: blur(16px);
+/* Custom Card & Elevation Styles */
+.ui-card {
+  background-color: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: 0.75rem;
+  box-shadow: var(--shadow-soft);
+  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+}
+
+.ui-card-hover {
+  background-color: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: 0.75rem;
+  box-shadow: var(--shadow-soft);
+  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+}
+
+.ui-card-hover:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-elevated);
+  border-color: rgba(16, 185, 129, 0.3);
+}
+
+/* Glass card styling */
+.glass-panel {
+  background: rgba(255, 255, 255, 0.75);
+  backdrop-filter: blur(12px);
   border: 1px solid rgba(226, 232, 240, 0.8);
   box-shadow: var(--shadow-soft);
 }
 
-.dark .glass-card {
-  background: rgba(15, 23, 42, 0.6);
-  border: 1px solid rgba(51, 65, 85, 0.8);
-  box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.4);
+.dark .glass-panel {
+  background: rgba(17, 24, 39, 0.75);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(30, 41, 59, 0.8);
+  box-shadow: var(--shadow-soft);
 }
 
-/* Texture Backgrounds */
-.bg-grid-pattern {
-  background-size: 40px 40px;
-  background-image: linear-gradient(to right, rgba(0,0,0,0.03) 1px, transparent 1px),
-                    linear-gradient(to bottom, rgba(0,0,0,0.03) 1px, transparent 1px);
-}
-
-.dark .bg-grid-pattern {
-  background-image: linear-gradient(to right, rgba(255,255,255,0.03) 1px, transparent 1px),
-                    linear-gradient(to bottom, rgba(255,255,255,0.03) 1px, transparent 1px);
-}
-
-/* Subtle Shimmer effect for top ranks */
-.shimmer-text {
-  background: linear-gradient(
-    90deg,
-    var(--color-primary-600) 0%,
-    var(--color-primary-400) 50%,
-    var(--color-primary-600) 100%
-  );
-  background-size: 200% auto;
-  color: transparent;
-  -webkit-background-clip: text;
-  background-clip: text;
-  animation: shimmer 2.5s linear infinite;
-}
-
-.dark .shimmer-text {
-  background: linear-gradient(
-    90deg,
-    var(--color-primary-400) 0%,
-    var(--color-primary-200) 50%,
-    var(--color-primary-400) 100%
-  );
-  background-size: 200% auto;
-  color: transparent;
-  -webkit-background-clip: text;
-  background-clip: text;
-  animation: shimmer 2.5s linear infinite;
+/* Subtle Shimmer for Top Ranks */
+.shimmer-badge {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  color: #ffffff;
 }
 
 /* Custom Scrollbar */

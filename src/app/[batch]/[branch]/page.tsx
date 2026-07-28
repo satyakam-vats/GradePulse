@@ -2,9 +2,10 @@
 
 import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { ThemeToggle } from '@/components/ui/ThemeToggle';
 import Link from 'next/link';
+import { BookOpen, ChevronRight, ArrowLeft, Calendar, Award } from 'lucide-react';
 
 type SemesterData = {
   number: number;
@@ -41,22 +42,15 @@ export default function SemesterSelectorPage() {
   const decodedBranch = decodeURIComponent(branch || '');
 
   return (
-    <div className="min-h-screen flex flex-col relative bg-slate-50 dark:bg-slate-950 transition-colors duration-300">
-      {/* Background Texture */}
-      <div className="absolute inset-0 z-0 bg-grid-pattern opacity-50 dark:opacity-20 pointer-events-none" />
-
+    <div className="min-h-screen flex flex-col relative bg-slate-50/70 dark:bg-[#090d16] text-slate-900 dark:text-slate-100 transition-colors duration-300">
       {/* Header */}
-      <header className="relative z-10 p-6 flex justify-between items-center max-w-4xl mx-auto w-full">
-        <nav className="flex items-center space-x-2 text-sm font-medium overflow-x-auto whitespace-nowrap scrollbar-hide">
-          <Link href="/" className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-colors">
-            Batches
+      <header className="relative z-10 p-6 flex justify-between items-center max-w-5xl mx-auto w-full">
+        <nav className="flex items-center space-x-2 text-sm font-medium">
+          <Link href={`/${batch}`} className="flex items-center gap-1 text-slate-500 hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors">
+            <ArrowLeft className="w-4 h-4" /> {decodedBatch}
           </Link>
           <span className="text-slate-300 dark:text-slate-700">/</span>
-          <Link href={`/${batch}`} className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-colors">
-            {decodedBatch}
-          </Link>
-          <span className="text-slate-300 dark:text-slate-700">/</span>
-          <span className="text-slate-800 dark:text-slate-100">{decodedBranch}</span>
+          <span className="text-slate-900 dark:text-slate-100 font-semibold">{decodedBranch} Branch</span>
         </nav>
         <ThemeToggle />
       </header>
@@ -64,73 +58,60 @@ export default function SemesterSelectorPage() {
       {/* Main Content */}
       <main className="flex-grow flex flex-col items-center justify-center p-6 relative z-10 w-full max-w-4xl mx-auto">
         <motion.div
-          initial={{ opacity: 0, y: -20 }}
+          initial={{ opacity: 0, y: 15 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
-          className="w-full text-center mb-16"
+          transition={{ duration: 0.3 }}
+          className="text-center mb-10"
         >
-          <h1 className="text-4xl md:text-6xl font-black font-display text-slate-900 dark:text-white mb-4">
-            Select Semester
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 text-xs font-mono mb-4">
+            BRANCH: {decodedBranch} &bull; BATCH: {decodedBatch}
+          </div>
+          <h1 className="text-4xl md:text-5xl font-bold tracking-tight font-display mb-3">
+            Select Academic Semester
           </h1>
-          <p className="text-lg text-slate-500 dark:text-slate-400">
-            {decodedBranch} &bull; {decodedBatch}
+          <p className="text-slate-600 dark:text-slate-400 max-w-md mx-auto text-sm">
+            Access complete semester analytics, grade bands, subject breakdowns, and class leaderboards.
           </p>
         </motion.div>
 
-        <div className="w-full max-w-2xl">
+        {/* Semester Cards Grid */}
+        <div className="w-full">
           {loading ? (
-            <div className="space-y-3">
-              {[1, 2, 3, 4].map((i) => (
-                <div key={i} className="h-24 bg-white/40 dark:bg-slate-900/40 rounded-xl animate-pulse border border-slate-200/50 dark:border-slate-800/50" />
-              ))}
-            </div>
-          ) : semesters.length === 0 ? (
-            <div className="text-center py-12">
-              <p className="text-slate-500 dark:text-slate-400 text-lg">No semesters found for this branch.</p>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="h-28 bg-slate-200/60 dark:bg-slate-800/60 rounded-xl animate-pulse" />
+              <div className="h-28 bg-slate-200/60 dark:bg-slate-800/60 rounded-xl animate-pulse" />
             </div>
           ) : (
-            <div className="space-y-3">
-              <AnimatePresence>
-                {semesters.map((sem, index) => (
-                  <motion.div
-                    key={sem.number}
-                    initial={{ opacity: 0, x: -20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ duration: 0.5, delay: index * 0.1, ease: [0.16, 1, 0.3, 1] }}
-                    whileHover={{ scale: 1.01, x: 5 }}
-                    whileTap={{ scale: 0.99 }}
-                    onClick={() => router.push(`/${batch}/${branch}/${sem.number}`)}
-                    className="cursor-pointer group flex items-center justify-between bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-5 shadow-sm hover:shadow-soft hover:border-emerald-500/30 dark:hover:border-emerald-500/30 transition-all duration-300"
-                  >
-                    <div className="flex items-center space-x-5">
-                      <div className="w-12 h-12 rounded-xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-lg font-bold font-display text-slate-500 dark:text-slate-400 group-hover:bg-emerald-100 dark:group-hover:bg-emerald-900/30 group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">
-                        S{sem.number}
-                      </div>
-                      <div className="text-left">
-                        <h3 className="text-xl font-bold font-display text-slate-800 dark:text-slate-100">
-                          Semester {sem.number}
-                        </h3>
-                        <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider mt-1">
-                          {sem.term}
-                        </p>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {semesters.map((s) => (
+                <button
+                  key={s.number}
+                  onClick={() => router.push(`/${batch}/${branch}/${s.number}`)}
+                  className="group ui-card-hover p-6 text-left flex items-center justify-between"
+                >
+                  <div className="flex items-center gap-4">
+                    <div className="w-12 h-12 rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center font-display font-bold text-lg group-hover:bg-emerald-600 group-hover:text-white transition-colors">
+                      Sem {s.number}
+                    </div>
+                    <div>
+                      <h3 className="font-display font-bold text-lg text-slate-900 dark:text-white group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">
+                        Semester {s.number}
+                      </h3>
+                      <div className="flex items-center gap-3 text-xs text-slate-500 dark:text-slate-400 mt-1">
+                        <span className="inline-flex items-center gap-1 font-mono uppercase">
+                          <Calendar className="w-3.5 h-3.5" /> {s.type}
+                        </span>
+                        {s.avgSgpa && (
+                          <span className="inline-flex items-center gap-1 font-medium text-emerald-600 dark:text-emerald-400">
+                            <Award className="w-3.5 h-3.5" /> Avg {s.avgSgpa.toFixed(2)} SGPA
+                          </span>
+                        )}
                       </div>
                     </div>
-                    <div className="flex items-center space-x-6 text-slate-400 transition-colors">
-                      {sem.avgSgpa !== null && (
-                        <div className="text-right">
-                          <p className="text-xs text-slate-400 mb-1">Avg SGPA</p>
-                          <p className="text-lg font-bold font-display text-emerald-600 dark:text-emerald-400 group-hover:scale-110 transition-transform origin-right">
-                            {sem.avgSgpa.toFixed(2)}
-                          </p>
-                        </div>
-                      )}
-                      <svg className="w-5 h-5 transform group-hover:translate-x-1 group-hover:text-emerald-500 transition-all" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                      </svg>
-                    </div>
-                  </motion.div>
-                ))}
-              </AnimatePresence>
+                  </div>
+                  <ChevronRight className="w-5 h-5 text-slate-400 group-hover:translate-x-1 transition-transform group-hover:text-emerald-500" />
+                </button>
+              ))}
             </div>
           )}
         </div>

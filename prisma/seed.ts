@@ -15,14 +15,19 @@ async function main() {
   const rawData = JSON.parse(fs.readFileSync(jsonPath, 'utf-8'));
   console.log(`Loaded ${rawData.length} student profiles.`);
 
-  console.log('Seeding Batch...');
+  console.log('Clearing database tables for clean lightning-fast seed...');
+  await prisma.subjectResult.deleteMany({});
+  await prisma.semesterResult.deleteMany({});
+  await prisma.backlog.deleteMany({});
+  await prisma.student.deleteMany({});
+
+  console.log('Seeding Batch & Branch...');
   const batch = await prisma.batch.upsert({
     where: { id: 1 },
     update: { name: '2024-2028', startYear: 2024, endYear: 2028 },
     create: { name: '2024-2028', startYear: 2024, endYear: 2028 },
   });
 
-  console.log('Seeding Branch...');
   const branch = await prisma.branch.upsert({
     where: { code: 'CS' },
     update: { name: 'Computer Science' },
@@ -47,9 +52,8 @@ async function main() {
     semesterMap.set(s.number, sem.id);
   }
 
-  console.log('Collecting and Seeding Subjects...');
+  console.log('Collecting Subjects...');
   const uniqueSubjects = new Map<string, { courseCode: string; name: string; credits: number }>();
-  
   for (const student of rawData) {
     for (const sem of student.semesters || []) {
       for (const sub of sem.subjects || []) {
@@ -73,71 +77,51 @@ async function main() {
     });
     subjectMap.set(s.courseCode, s.id);
   }
-  console.log(`Seeded ${subjectMap.size} unique subjects.`);
 
-  console.log('Seeding Students & Semester/Subject Results...');
-  let studentCount = 0;
-  let semResCount = 0;
-  let subjResCount = 0;
-  let backlogCount = 0;
+  console.log('Bulk Creating Students...');
+  await prisma.student.createMany({
+    data: rawData.map((prof: any) => ({
+      usn: prof.usn.trim().toUpperCase(),
+      name: prof.name,
+      section: prof.section || 'A',
+      overallCgpa: Number(prof.overallCgpa) || 0,
+      creditsEarned: Number(prof.creditsEarnedSoFar) || 0,
+      creditsToEarn: Number(prof.creditsToBeEarned) || 0,
+      batchId: batch.id,
+      branchId: branch.id,
+    }))
+  });
+
+  const allDbStudents = await prisma.student.findMany({
+    select: { id: true, usn: true }
+  });
+
+  const studentIdMap = new Map<string, number>();
+  allDbStudents.forEach(s => studentIdMap.set(s.usn, s.id));
+
+  console.log('Bulk Creating Semester & Subject Results...');
+  const semResultsData: any[] = [];
+  const subjResultsData: any[] = [];
+  const backlogMap = new Map<string, { studentId: number; subjectId: number; attempts: number }>();
 
   for (const prof of rawData) {
     const usn = prof.usn.trim().toUpperCase();
-    
-    const student = await prisma.student.upsert({
-      where: { usn },
-      update: {
-        name: prof.name,
-        section: prof.section || 'A',
-        overallCgpa: Number(prof.overallCgpa) || 0,
-        creditsEarned: Number(prof.creditsEarnedSoFar) || 0,
-        creditsToEarn: Number(prof.creditsToBeEarned) || 0,
-        batchId: batch.id,
-        branchId: branch.id,
-      },
-      create: {
-        usn,
-        name: prof.name,
-        section: prof.section || 'A',
-        overallCgpa: Number(prof.overallCgpa) || 0,
-        creditsEarned: Number(prof.creditsEarnedSoFar) || 0,
-        creditsToEarn: Number(prof.creditsToBeEarned) || 0,
-        batchId: batch.id,
-        branchId: branch.id,
-      },
-    });
-    
-    studentCount++;
+    const studentId = studentIdMap.get(usn);
+    if (!studentId) continue;
 
     for (const sem of prof.semesters || []) {
       const snum = sem.semesterNumber;
       const semesterId = semesterMap.get(snum);
-      
       if (!semesterId) continue;
 
-      await prisma.semesterResult.upsert({
-        where: {
-          studentId_semesterId: {
-            studentId: student.id,
-            semesterId,
-          }
-        },
-        update: {
-          creditsRegistered: Number(sem.creditsRegistered) || 0,
-          creditsEarned: Number(sem.creditsEarned) || 0,
-          sgpa: Number(sem.sgpa) || 0,
-          cgpa: Number(sem.cgpa) || 0,
-        },
-        create: {
-          studentId: student.id,
-          semesterId,
-          creditsRegistered: Number(sem.creditsRegistered) || 0,
-          creditsEarned: Number(sem.creditsEarned) || 0,
-          sgpa: Number(sem.sgpa) || 0,
-          cgpa: Number(sem.cgpa) || 0,
-        }
+      semResultsData.push({
+        studentId,
+        semesterId,
+        creditsRegistered: Number(sem.creditsRegistered) || 0,
+        creditsEarned: Number(sem.creditsEarned) || 0,
+        sgpa: Number(sem.sgpa) || 0,
+        cgpa: Number(sem.cgpa) || 0,
       });
-      semResCount++;
 
       for (const sub of sem.subjects || []) {
         const subjectId = subjectMap.get(sub.courseCode.trim());
@@ -145,62 +129,38 @@ async function main() {
 
         const isFailed = ['F', 'DX', 'NE', 'AB', 'NP'].includes(sub.grade);
 
-        await prisma.subjectResult.upsert({
-          where: {
-            studentId_subjectId_semesterId: {
-              studentId: student.id,
-              subjectId,
-              semesterId,
-            }
-          },
-          update: {
-            cieMarks: Number(sub.cie) || 0,
-            attendance: Number(sub.attendance) || 0,
-            creditsEarned: Number(sub.creditsEarned) || 0,
-            gpa: Number(sub.gpa) || 0,
-            grade: sub.grade || 'P',
-            attempts: Number(sub.attempts) || 1,
-            backlogCleared: Boolean(sub.backlogCleared),
-            originalGrade: sub.originalGrade || null,
-          },
-          create: {
-            studentId: student.id,
-            subjectId,
-            semesterId,
-            cieMarks: Number(sub.cie) || 0,
-            attendance: Number(sub.attendance) || 0,
-            creditsEarned: Number(sub.creditsEarned) || 0,
-            gpa: Number(sub.gpa) || 0,
-            grade: sub.grade || 'P',
-            attempts: Number(sub.attempts) || 1,
-            backlogCleared: Boolean(sub.backlogCleared),
-            originalGrade: sub.originalGrade || null,
-          }
+        subjResultsData.push({
+          studentId,
+          subjectId,
+          semesterId,
+          cieMarks: Number(sub.cie) || 0,
+          attendance: Number(sub.attendance) || 0,
+          creditsEarned: Number(sub.creditsEarned) || 0,
+          gpa: Number(sub.gpa) || 0,
+          grade: sub.grade || 'P',
+          attempts: Number(sub.attempts) || 1,
+          backlogCleared: Boolean(sub.backlogCleared),
+          originalGrade: sub.originalGrade || null,
         });
-        subjResCount++;
 
         if (isFailed) {
-          await prisma.backlog.upsert({
-            where: {
-              studentId_subjectId: {
-                studentId: student.id,
-                subjectId,
-              }
-            },
-            update: { attempts: Number(sub.attempts) || 1 },
-            create: {
-              studentId: student.id,
-              subjectId,
-              attempts: Number(sub.attempts) || 1,
-            }
+          const key = `${studentId}_${subjectId}`;
+          const currentAttempts = backlogMap.get(key)?.attempts || 0;
+          backlogMap.set(key, {
+            studentId,
+            subjectId,
+            attempts: Math.max(currentAttempts, Number(sub.attempts) || 1)
           });
-          backlogCount++;
         }
       }
     }
   }
 
-  console.log(`Seeding Complete! ${studentCount} students, ${semResCount} sem results, ${subjResCount} subject results, ${backlogCount} active backlogs.`);
+  await prisma.semesterResult.createMany({ data: semResultsData });
+  await prisma.subjectResult.createMany({ data: subjResultsData });
+  await prisma.backlog.createMany({ data: Array.from(backlogMap.values()) });
+
+  console.log(`Lightning Fast Seeding Complete! ${rawData.length} students, ${semResultsData.length} sem results, ${subjResultsData.length} subject results, ${backlogMap.size} unique active backlogs.`);
 }
 
 main()

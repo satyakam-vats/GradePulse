@@ -56,6 +56,7 @@ export async function GET(
       const avgCgpa = data.cgpas.length ? data.cgpas.reduce((a, b) => a + b, 0) / data.cgpas.length : 0;
       const avgSgpa = data.sgpas.length ? data.sgpas.reduce((a, b) => a + b, 0) / data.sgpas.length : 0;
       const topCgpa = data.cgpas.length ? Math.max(...data.cgpas) : 0;
+      const topSgpa = data.sgpas.length ? Math.max(...data.sgpas) : 0;
       const total = data.passed + data.failed;
 
       return {
@@ -63,7 +64,8 @@ export async function GET(
         count: total,
         avgCgpa: Number(avgCgpa.toFixed(2)),
         avgSgpa: Number(avgSgpa.toFixed(2)),
-        topCgpa: Number(topCgpa.toFixed(2))
+        topCgpa: Number(topCgpa.toFixed(2)),
+        topSgpa: Number(topSgpa.toFixed(2))
       };
     }).sort((a, b) => a.section.localeCompare(b.section));
 

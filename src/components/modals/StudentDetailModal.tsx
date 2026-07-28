@@ -67,45 +67,45 @@ export default function StudentDetailModal({ usn, isOpen, onClose }: StudentDeta
           animate={{ opacity: 1, scale: 1 }}
           exit={{ opacity: 0, scale: 0.96 }}
           transition={{ duration: 0.2 }}
-          className="relative w-full max-w-4xl bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-800 rounded-3xl shadow-2xl overflow-hidden z-10 my-8"
+          className="relative w-full max-w-4xl ui-card rounded-3xl shadow-2xl overflow-hidden z-10 my-8"
         >
           {/* Header */}
-          <div className="p-6 bg-slate-50 dark:bg-[#161e31] border-b border-slate-200 dark:border-slate-800 flex items-center justify-between">
+          <div className="p-6 border-b border-slate-500/20 flex items-center justify-between">
             <div className="flex items-center gap-4">
-              <div className="w-14 h-14 rounded-2xl bg-gradient-to-tr from-emerald-500 to-indigo-600 text-white font-bold flex items-center justify-center shadow-lg shadow-emerald-500/20 text-xl">
+              <div className="w-14 h-14 rounded-2xl theme-accent-bg text-white font-bold flex items-center justify-center shadow-lg text-xl">
                 {studentName ? studentName.charAt(0) : 'S'}
               </div>
               <div>
                 <div className="flex items-center gap-2">
-                  <h2 className="text-2xl font-black font-display text-slate-900 dark:text-white">
+                  <h2 className="text-2xl font-black font-display">
                     {loading ? 'Loading Student...' : studentName}
                   </h2>
                   {!loading && (
-                    <span className="px-2.5 py-0.5 rounded-lg bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 font-mono font-bold text-xs border border-indigo-500/20">
+                    <span className="px-2.5 py-0.5 rounded-lg theme-accent-bg text-white font-mono font-bold text-xs">
                       Sec {section}
                     </span>
                   )}
                 </div>
-                <div className="flex items-center gap-3 text-xs font-mono text-slate-500 mt-1">
-                  <span>USN: <strong className="text-slate-700 dark:text-slate-300">{usn}</strong></span>
+                <div className="flex items-center gap-3 text-xs font-mono opacity-70 mt-1">
+                  <span>USN: <strong className="font-bold">{usn}</strong></span>
                   <span>&bull;</span>
-                  <span>Earned Credits: <strong className="text-emerald-600 dark:text-emerald-400">{creditsEarned} / {creditsEarned + creditsToEarn}</strong></span>
+                  <span>Earned Credits: <strong className="theme-accent-text">{creditsEarned} / {creditsEarned + creditsToEarn}</strong></span>
                 </div>
               </div>
             </div>
 
             <div className="flex items-center gap-4">
               {!loading && overallCgpa > 0 && (
-                <div className="text-right bg-emerald-500/10 border border-emerald-500/20 px-4 py-2 rounded-2xl">
-                  <div className="text-[10px] text-emerald-600 dark:text-emerald-400 font-bold uppercase tracking-wider">Cumulative CGPA</div>
-                  <div className="text-2xl font-black font-display text-emerald-600 dark:text-emerald-400">
+                <div className="text-right border theme-accent-border px-4 py-2 rounded-2xl">
+                  <div className="text-[10px] theme-accent-text font-bold uppercase tracking-wider">Cumulative CGPA</div>
+                  <div className="text-2xl font-black font-display theme-accent-text">
                     {Number(overallCgpa).toFixed(2)}
                   </div>
                 </div>
               )}
               <button
                 onClick={onClose}
-                className="p-2 rounded-xl border border-slate-200 dark:border-slate-800 hover:bg-slate-200/50 dark:hover:bg-slate-800 transition-colors text-slate-500"
+                className="p-2 rounded-xl border border-slate-500/20 hover:opacity-100 opacity-70 transition-colors"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -115,11 +115,11 @@ export default function StudentDetailModal({ usn, isOpen, onClose }: StudentDeta
           {/* Body */}
           <div className="p-6 max-h-[75vh] overflow-y-auto space-y-6">
             {loading ? (
-              <div className="py-16 text-center text-slate-400 animate-pulse font-medium">
+              <div className="py-16 text-center opacity-70 animate-pulse font-medium">
                 Fetching complete academic transcript, attendance & CIE data...
               </div>
             ) : !student ? (
-              <div className="py-16 text-center text-slate-400 font-medium">
+              <div className="py-16 text-center opacity-70 font-medium">
                 Failed to load student data.
               </div>
             ) : (
@@ -130,25 +130,25 @@ export default function StudentDetailModal({ usn, isOpen, onClose }: StudentDeta
                   const subjects = subjectsBySem.get(snum) || [];
 
                   return (
-                    <div key={snum} className="p-5 rounded-2xl border border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/50 space-y-4">
+                    <div key={snum} className="p-5 rounded-2xl border border-slate-500/20 ui-card space-y-4">
                       {/* Semester Header */}
-                      <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-200/60 dark:border-slate-800/80 pb-3">
+                      <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-500/20 pb-3">
                         <div className="flex items-center gap-2">
-                          <BookOpen className="w-4 h-4 text-indigo-500" />
-                          <h3 className="font-display font-extrabold text-base text-slate-900 dark:text-white">
+                          <BookOpen className="w-4 h-4 theme-accent-text" />
+                          <h3 className="font-display font-extrabold text-base">
                             Semester {snum} ({semRes.semester.term})
                           </h3>
                         </div>
 
                         <div className="flex items-center gap-3 text-xs font-semibold">
-                          <span className="text-slate-500">
-                            Reg Credits: <strong className="text-slate-700 dark:text-slate-300">{semRes.creditsRegistered}</strong>
+                          <span className="opacity-70">
+                            Reg Credits: <strong className="font-bold">{semRes.creditsRegistered}</strong>
                           </span>
-                          <span className="text-slate-500">&bull;</span>
-                          <span className="text-indigo-600 dark:text-indigo-400 font-bold bg-indigo-500/10 px-2.5 py-1 rounded-lg">
+                          <span className="opacity-40">&bull;</span>
+                          <span className="theme-secondary-bg text-white font-bold px-2.5 py-1 rounded-lg">
                             SGPA: {Number(semRes.sgpa).toFixed(2)}
                           </span>
-                          <span className="text-emerald-600 dark:text-emerald-400 font-bold bg-emerald-500/10 px-2.5 py-1 rounded-lg">
+                          <span className="theme-accent-bg text-white font-bold px-2.5 py-1 rounded-lg">
                             CGPA: {Number(semRes.cgpa).toFixed(2)}
                           </span>
                         </div>
@@ -157,7 +157,7 @@ export default function StudentDetailModal({ usn, isOpen, onClose }: StudentDeta
                       {/* Course Detailed Table */}
                       <div className="overflow-x-auto">
                         <table className="w-full text-left text-xs">
-                          <thead className="text-slate-400 font-mono uppercase text-[10px] tracking-wider border-b border-slate-200 dark:border-slate-800">
+                          <thead className="opacity-70 font-mono uppercase text-[10px] tracking-wider border-b border-slate-500/20">
                             <tr>
                               <th className="py-2 px-2">Course</th>
                               <th className="py-2 px-2">Subject Name</th>
@@ -167,50 +167,50 @@ export default function StudentDetailModal({ usn, isOpen, onClose }: StudentDeta
                               <th className="py-2 px-2 text-right">Grade</th>
                             </tr>
                           </thead>
-                          <tbody className="divide-y divide-slate-100 dark:divide-slate-800/40">
+                          <tbody className="divide-y divide-slate-500/10">
                             {subjects.map((sub: any, idx: number) => {
                               const isLowAtt = sub.attendance > 0 && sub.attendance < 85;
                               const isFailed = ['F', 'DX', 'NE', 'AB', 'NP'].includes(sub.grade);
 
                               return (
-                                <tr key={idx} className="hover:bg-slate-100/50 dark:hover:bg-slate-800/40 transition-colors">
-                                  <td className="py-2.5 px-2 font-mono font-bold text-indigo-600 dark:text-indigo-400">
+                                <tr key={idx} className="hover:bg-slate-500/10 transition-colors">
+                                  <td className="py-2.5 px-2 font-mono font-bold theme-accent-text">
                                     {sub.subject?.courseCode || sub.courseCode}
                                   </td>
-                                  <td className="py-2.5 px-2 font-bold text-slate-800 dark:text-slate-200">
+                                  <td className="py-2.5 px-2 font-bold">
                                     {sub.subject?.name || sub.subjectName}
                                     {sub.backlogCleared && (
-                                      <span className="ml-2 px-1.5 py-0.5 text-[9px] font-black rounded bg-cyan-500/10 text-cyan-600 dark:text-cyan-400 border border-cyan-500/20">
+                                      <span className="ml-2 px-1.5 py-0.5 text-[9px] font-black rounded bg-cyan-500/20 text-cyan-500 border border-cyan-500/30">
                                         Cleared in Retake (Orig: {sub.originalGrade})
                                       </span>
                                     )}
                                   </td>
-                                  <td className="py-2.5 px-2 text-center font-mono font-semibold text-slate-700 dark:text-slate-300">
+                                  <td className="py-2.5 px-2 text-center font-mono font-semibold opacity-80">
                                     {sub.cieMarks} / 50
                                   </td>
                                   <td className="py-2.5 px-2 text-center">
                                     <span
                                       className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full font-mono text-[11px] font-bold ${
                                         isLowAtt
-                                          ? 'bg-rose-500/15 text-rose-600 dark:text-rose-400 border border-rose-500/30'
-                                          : 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30'
+                                          ? 'bg-rose-500/20 text-rose-500 border border-rose-500/30'
+                                          : 'theme-accent-bg text-white'
                                       }`}
                                     >
                                       {isLowAtt && <AlertTriangle className="w-3 h-3" />}
                                       {sub.attendance}%
                                     </span>
                                   </td>
-                                  <td className="py-2.5 px-2 text-center font-mono font-bold text-slate-600 dark:text-slate-400">
+                                  <td className="py-2.5 px-2 text-center font-mono font-bold opacity-70">
                                     {sub.creditsEarned}
                                   </td>
                                   <td className="py-2.5 px-2 text-right">
                                     <span
                                       className={`px-2.5 py-1 rounded-lg font-black font-display text-xs ${
                                         isFailed
-                                          ? 'bg-rose-500/20 text-rose-600 dark:text-rose-400 border border-rose-500/30'
+                                          ? 'bg-rose-500/20 text-rose-500 border border-rose-500/30'
                                           : sub.grade === 'O'
-                                          ? 'bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30'
-                                          : 'bg-indigo-500/20 text-indigo-600 dark:text-indigo-400 border border-indigo-500/30'
+                                          ? 'theme-accent-bg text-white font-bold'
+                                          : 'theme-secondary-bg text-white font-bold'
                                       }`}
                                     >
                                       {sub.grade}

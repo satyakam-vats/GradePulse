@@ -1,52 +1,66 @@
 "use client";
 
 import React, { createContext, useContext, useEffect, useState } from "react";
-
-type Theme = "light" | "dark";
+import { FIGMA_THEMES, FigmaTheme } from "@/lib/figmaThemes";
 
 interface ThemeContextType {
-  theme: Theme;
-  toggleTheme: () => void;
-  setTheme: (t: Theme) => void;
+  currentTheme: FigmaTheme;
+  themeId: string;
+  setThemeId: (id: string) => void;
 }
 
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
-  const [theme, setThemeState] = useState<Theme>("dark");
+  const [themeId, setThemeIdState] = useState<string>("blue-eclipse");
+  const [currentTheme, setCurrentTheme] = useState<FigmaTheme>(FIGMA_THEMES[2]);
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
     setMounted(true);
-    const savedTheme = localStorage.getItem("gradepulse-theme") as Theme | null;
-    const initialTheme = savedTheme || "dark";
-    setThemeState(initialTheme);
-    
-    if (initialTheme === "dark") {
-      document.documentElement.classList.add("dark");
-    } else {
-      document.documentElement.classList.remove("dark");
-    }
+    const saved = localStorage.getItem("gradepulse-figma-theme");
+    const initialId = saved || "blue-eclipse";
+    applyTheme(initialId);
   }, []);
 
-  const setTheme = (newTheme: Theme) => {
-    setThemeState(newTheme);
-    localStorage.setItem("gradepulse-theme", newTheme);
-    
-    if (newTheme === "dark") {
-      document.documentElement.classList.add("dark");
+  const applyTheme = (id: string) => {
+    const targetTheme = FIGMA_THEMES.find(t => t.id === id) || FIGMA_THEMES[2];
+    setThemeIdState(targetTheme.id);
+    setCurrentTheme(targetTheme);
+    localStorage.setItem("gradepulse-figma-theme", targetTheme.id);
+
+    const root = document.documentElement;
+
+    // Set exact theme CSS variables for canvas, cards, text, buttons & accents
+    root.style.setProperty("--background", targetTheme.canvas);
+    root.style.setProperty("--foreground", targetTheme.text);
+    root.style.setProperty("--card-bg", targetTheme.cardBg);
+    root.style.setProperty("--card-border", targetTheme.cardBorder);
+    root.style.setProperty("--muted-fg", targetTheme.mutedText);
+    root.style.setProperty("--color-primary", targetTheme.primary);
+    root.style.setProperty("--color-accent", targetTheme.accent);
+
+    // Apply direct body styles for absolute responsiveness
+    if (document.body) {
+      document.body.style.backgroundColor = targetTheme.canvas;
+      document.body.style.color = targetTheme.text;
+    }
+
+    if (targetTheme.isDark) {
+      root.classList.add("dark");
+      root.classList.remove("light");
     } else {
-      document.documentElement.classList.remove("dark");
+      root.classList.remove("dark");
+      root.classList.add("light");
     }
   };
 
-  const toggleTheme = () => {
-    const nextTheme = theme === "light" ? "dark" : "light";
-    setTheme(nextTheme);
+  const setThemeId = (id: string) => {
+    applyTheme(id);
   };
 
   return (
-    <ThemeContext.Provider value={{ theme, toggleTheme, setTheme }}>
+    <ThemeContext.Provider value={{ currentTheme, themeId, setThemeId }}>
       {children}
     </ThemeContext.Provider>
   );

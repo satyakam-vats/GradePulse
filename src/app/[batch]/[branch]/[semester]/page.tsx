@@ -71,28 +71,28 @@ export default function DashboardPage() {
   const sectionStatsData = stats?.sectionStats || [];
 
   return (
-    <div className="min-h-screen bg-slate-50/80 dark:bg-[#060913] text-slate-900 dark:text-slate-100 transition-colors duration-300 pb-16 relative overflow-hidden">
-      {/* Radiant Background Glows */}
-      <div className="absolute -top-32 left-1/4 w-[600px] h-[350px] bg-gradient-to-r from-emerald-500/15 via-teal-500/15 to-indigo-500/15 blur-3xl pointer-events-none rounded-full" />
-      <div className="absolute top-1/2 right-0 w-[500px] h-[400px] bg-gradient-to-l from-indigo-500/10 via-purple-500/10 to-transparent blur-3xl pointer-events-none rounded-full" />
+    <div className="min-h-screen transition-colors duration-300 pb-16 relative overflow-hidden">
+      {/* Radiant Background Glows using theme primary color */}
+      <div className="absolute -top-32 left-1/4 w-[600px] h-[350px] theme-accent-bg opacity-15 blur-3xl pointer-events-none rounded-full" />
+      <div className="absolute top-1/2 right-0 w-[500px] h-[400px] theme-secondary-bg opacity-15 blur-3xl pointer-events-none rounded-full" />
 
       {/* Header Bar */}
-      <header className="sticky top-0 z-30 bg-white/80 dark:bg-[#060913]/80 backdrop-blur-xl border-b border-slate-200/80 dark:border-slate-800/80 px-6 py-3.5">
+      <header className="sticky top-0 z-30 ui-card rounded-none border-x-0 border-t-0 px-6 py-3.5 backdrop-blur-xl">
         <div className="max-w-7xl mx-auto flex items-center justify-between">
           <nav className="flex items-center space-x-2 text-xs font-semibold">
-            <Link href="/" className="text-slate-500 hover:text-emerald-500 transition-colors flex items-center gap-1">
-              <Activity className="w-3.5 h-3.5 text-emerald-500" /> Batches
+            <Link href="/" className="opacity-70 hover:opacity-100 transition-colors flex items-center gap-1">
+              <Activity className="w-3.5 h-3.5 theme-accent-text" /> Batches
             </Link>
-            <span className="text-slate-300 dark:text-slate-700">/</span>
-            <Link href={`/${batch}`} className="text-slate-500 hover:text-emerald-500 transition-colors">
+            <span className="opacity-40">/</span>
+            <Link href={`/${batch}`} className="opacity-70 hover:opacity-100 transition-colors">
               {decodedBatch}
             </Link>
-            <span className="text-slate-300 dark:text-slate-700">/</span>
-            <Link href={`/${batch}/${branch}`} className="text-slate-500 hover:text-emerald-500 transition-colors">
+            <span className="opacity-40">/</span>
+            <Link href={`/${batch}/${branch}`} className="opacity-70 hover:opacity-100 transition-colors">
               {decodedBranch}
             </Link>
-            <span className="text-slate-300 dark:text-slate-700">/</span>
-            <span className="text-emerald-600 dark:text-emerald-400 font-bold bg-emerald-500/10 px-2 py-0.5 rounded-md font-mono">
+            <span className="opacity-40">/</span>
+            <span className="theme-accent-bg text-white font-bold px-2 py-0.5 rounded-md font-mono shadow-sm">
               Sem {semester}
             </span>
           </nav>
@@ -100,16 +100,16 @@ export default function DashboardPage() {
           <div className="flex items-center gap-3">
             <button
               onClick={() => setIsCompareModalOpen(true)}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-indigo-500/30 bg-gradient-to-r from-indigo-500/10 to-purple-500/10 hover:from-indigo-500/20 hover:to-purple-500/20 text-indigo-700 dark:text-indigo-300 text-xs font-bold transition-all shadow-sm cursor-pointer"
+              className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl theme-accent-bg text-white text-xs font-bold transition-all shadow-md cursor-pointer hover:opacity-90"
             >
-              <Users className="w-3.5 h-3.5 text-indigo-500" /> Compare Students
+              <Users className="w-3.5 h-3.5 text-white" /> Compare Students
             </button>
             <ThemeToggle />
           </div>
         </div>
 
-        {/* Gradient Top Line */}
-        <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-emerald-500 via-teal-400 to-indigo-500 opacity-80" />
+        {/* Gradient Top Line matching theme accent */}
+        <div className="absolute top-0 left-0 right-0 h-[3px] theme-accent-bg opacity-90" />
       </header>
 
       {/* Main Dashboard Container */}
@@ -117,10 +117,10 @@ export default function DashboardPage() {
         {/* Title & Semester Selector bar */}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
-            <div className="flex items-center gap-2 text-xs font-mono font-bold uppercase tracking-wider text-emerald-600 dark:text-emerald-400 mb-1">
+            <div className="flex items-center gap-2 text-xs font-mono font-bold uppercase tracking-wider theme-accent-text mb-1">
               <Sparkles className="w-3.5 h-3.5" /> {decodedBranch} Department &bull; Cohort {decodedBatch}
             </div>
-            <h1 className="text-3xl md:text-4xl font-black font-display tracking-tight text-slate-900 dark:text-white">
+            <h1 className="text-3xl md:text-4xl font-black font-display tracking-tight">
               Semester {semester} Analytics
             </h1>
           </div>
@@ -128,15 +128,15 @@ export default function DashboardPage() {
           {/* Controls: Metric Switcher & Semester Quick Tabs */}
           <div className="flex flex-wrap items-center gap-3">
             {/* Semester Tabs */}
-            <div className="flex bg-slate-200/80 dark:bg-slate-900/80 p-1 rounded-xl text-xs font-bold border border-slate-300/60 dark:border-slate-800 backdrop-blur-md">
+            <div className="flex ui-card p-1 rounded-xl text-xs font-bold shadow-sm">
               {[1, 2, 3, 4, 5, 6, 7, 8].map((sNum) => (
                 <button
                   key={sNum}
                   onClick={() => router.push(`/${batch}/${branch}/${sNum}`)}
-                  className={`px-3 py-1.5 rounded-lg transition-all ${
+                  className={`px-3 py-1.5 rounded-lg transition-all cursor-pointer ${
                     currentSem === sNum
-                      ? 'bg-gradient-to-r from-emerald-500 to-teal-600 text-white shadow-md shadow-emerald-500/25 font-bold'
-                      : 'text-slate-500 hover:text-slate-900 dark:hover:text-white'
+                      ? 'theme-accent-bg text-white font-bold shadow-md'
+                      : 'opacity-70 hover:opacity-100'
                   }`}
                 >
                   S{sNum}
@@ -145,23 +145,23 @@ export default function DashboardPage() {
             </div>
 
             {/* Metric Switcher */}
-            <div className="flex bg-slate-200/80 dark:bg-slate-900/80 p-1 rounded-xl text-xs font-bold border border-slate-300/60 dark:border-slate-800 backdrop-blur-md">
+            <div className="flex ui-card p-1 rounded-xl text-xs font-bold shadow-sm">
               <button
                 onClick={() => setMetric('cgpa')}
-                className={`px-3 py-1.5 rounded-lg transition-all ${
+                className={`px-3.5 py-1.5 rounded-lg transition-all cursor-pointer ${
                   metric === 'cgpa'
-                    ? 'bg-gradient-to-r from-indigo-500 to-violet-600 text-white shadow-md shadow-indigo-500/25 font-bold'
-                    : 'text-slate-500 hover:text-slate-900 dark:hover:text-white'
+                    ? 'theme-accent-bg text-white font-bold shadow-md'
+                    : 'opacity-70 hover:opacity-100'
                 }`}
               >
                 CGPA
               </button>
               <button
                 onClick={() => setMetric('sgpa')}
-                className={`px-3 py-1.5 rounded-lg transition-all ${
+                className={`px-3.5 py-1.5 rounded-lg transition-all cursor-pointer ${
                   metric === 'sgpa'
-                    ? 'bg-gradient-to-r from-indigo-500 to-violet-600 text-white shadow-md shadow-indigo-500/25 font-bold'
-                    : 'text-slate-500 hover:text-slate-900 dark:hover:text-white'
+                    ? 'theme-accent-bg text-white font-bold shadow-md'
+                    : 'opacity-70 hover:opacity-100'
                 }`}
               >
                 SGPA
@@ -172,24 +172,24 @@ export default function DashboardPage() {
 
         {loading ? (
           <div className="space-y-6">
-            <div className="h-44 bg-slate-200/60 dark:bg-slate-800/60 rounded-2xl animate-pulse" />
+            <div className="h-44 ui-card animate-pulse" />
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="h-80 bg-slate-200/60 dark:bg-slate-800/60 rounded-2xl animate-pulse" />
-              <div className="h-80 bg-slate-200/60 dark:bg-slate-800/60 rounded-2xl animate-pulse" />
+              <div className="h-80 ui-card animate-pulse" />
+              <div className="h-80 ui-card animate-pulse" />
             </div>
           </div>
         ) : (
           <>
             {/* Asymmetric Hero Summary Cards */}
-            <SummaryCards stats={stats} metric={metric} />
+            <SummaryCards stats={stats} metric={metric} semesterNumber={currentSem} />
 
             {/* Section Comparison Cards */}
-            <SectionComparison sectionStats={sectionStatsData} />
+            <SectionComparison sectionStats={sectionStatsData} metric={metric} />
 
             {/* Charts Grid */}
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
               {/* Distribution Bar Chart (7 cols) */}
-              <div className="lg:col-span-7 ui-card p-6 border-t-2 border-t-indigo-500">
+              <div className="lg:col-span-7 ui-card p-6 border-t-4 theme-accent-border">
                 <DistributionChart
                   data={distributionData}
                   title={`${metric.toUpperCase()} Distribution Spectrum`}
@@ -198,7 +198,7 @@ export default function DashboardPage() {
               </div>
 
               {/* Grade Band Pie/Donut Chart (5 cols) */}
-              <div className="lg:col-span-5 ui-card p-6 border-t-2 border-t-teal-500">
+              <div className="lg:col-span-5 ui-card p-6 border-t-4 theme-accent-border">
                 <GradeBandChart data={gradeBandsData} />
               </div>
             </div>
@@ -206,12 +206,12 @@ export default function DashboardPage() {
             {/* Subject Analysis & Leaderboard Grid */}
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
               {/* Subject Breakdown (5 cols) */}
-              <div className="lg:col-span-5 ui-card p-6 border-t-2 border-t-emerald-500">
+              <div className="lg:col-span-5 ui-card p-6 border-t-4 theme-accent-border">
                 <SubjectAnalysis subjectStats={subjectStatsData} />
               </div>
 
               {/* Leaderboard Table (7 cols) */}
-              <div className="lg:col-span-7 ui-card p-6 border-t-2 border-t-cyan-500">
+              <div className="lg:col-span-7 ui-card p-6 border-t-4 theme-accent-border">
                 <Leaderboard 
                   students={students} 
                   onStudentClick={handleStudentClick} 

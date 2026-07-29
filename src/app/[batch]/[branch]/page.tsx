@@ -41,6 +41,22 @@ export default function SemesterSelectorPage() {
   const decodedBatch = decodeURIComponent(batch || '');
   const decodedBranch = decodeURIComponent(branch || '');
 
+  const branchFullName = decodedBranch === 'CS' 
+    ? 'COMPUTER SCIENCE & ENGINEERING' 
+    : decodedBranch === 'IS' 
+    ? 'INFORMATION SCIENCE & ENGINEERING' 
+    : `${decodedBranch} DEPARTMENT`;
+
+  const studentCountText = decodedBranch === 'CS' 
+    ? '200 Students' 
+    : decodedBranch === 'IS' 
+    ? '122 Students' 
+    : 'Enrolled Students';
+
+  const sectionsText = decodedBranch === 'CS' 
+    ? 'Sec A, Sec B & Sec C' 
+    : 'Sec A & Sec B';
+
   const semDescriptions: Record<number, string> = {
     1: 'First Year Foundation & Basic Engineering Mathematics',
     2: 'Basic Electrical, Electronics & Programming Fundamentals',
@@ -86,7 +102,7 @@ export default function SemesterSelectorPage() {
           className="text-center mb-10"
         >
           <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full ui-card border theme-accent-border text-xs font-mono font-bold theme-accent-text mb-4 shadow-sm">
-            <Sparkles className="w-3.5 h-3.5 theme-accent-text" /> COMPUTER SCIENCE & ENGINEERING &bull; COHORT {decodedBatch}
+            <Sparkles className="w-3.5 h-3.5 theme-accent-text" /> {branchFullName} &bull; COHORT {decodedBatch}
           </div>
           <h1 className="text-4xl md:text-5xl font-black tracking-tight font-display mb-3">
             Select Academic Semester
@@ -109,7 +125,7 @@ export default function SemesterSelectorPage() {
             </div>
             <div>
               <div className="text-xs opacity-70 font-bold uppercase tracking-wider">Cohort Strength</div>
-              <div className="text-lg font-black font-display theme-accent-text">200 CS Students</div>
+              <div className="text-lg font-black font-display theme-accent-text">{studentCountText}</div>
             </div>
           </div>
 
@@ -118,7 +134,7 @@ export default function SemesterSelectorPage() {
               <Layers className="w-5 h-5 text-white" />
             </div>
             <div>
-              <div className="text-xs opacity-70 font-bold uppercase tracking-wider">Scraped Terms</div>
+              <div className="text-xs opacity-70 font-bold uppercase tracking-wider">Academic Terms</div>
               <div className="text-lg font-black font-display theme-secondary-text">Semesters 1 - 4</div>
             </div>
           </div>
@@ -128,8 +144,8 @@ export default function SemesterSelectorPage() {
               <CheckCircle2 className="w-5 h-5 text-white" />
             </div>
             <div>
-              <div className="text-xs opacity-70 font-bold uppercase tracking-wider">Sections Covered</div>
-              <div className="text-lg font-black font-display theme-accent-text">Sec A, Sec B & Sec C</div>
+              <div className="text-xs opacity-70 font-bold uppercase tracking-wider">Class Sections</div>
+              <div className="text-lg font-black font-display theme-accent-text">{sectionsText}</div>
             </div>
           </div>
         </motion.div>

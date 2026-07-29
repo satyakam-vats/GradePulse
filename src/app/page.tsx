@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { ThemeToggle } from '@/components/ui/ThemeToggle';
-import { Sparkles, GraduationCap, ArrowRight, Layers, Award, BookOpen, Users, Activity } from 'lucide-react';
+import { Sparkles, GraduationCap, ArrowRight, Users, Award, BookOpen, Layers } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 export default function LandingPage() {
@@ -24,8 +24,7 @@ export default function LandingPage() {
       });
   }, []);
 
-  const defaultBatch = batches[0] || { name: '2024-2028', studentCount: 200 };
-  const totalStudents = defaultBatch.studentCount || 200;
+  const totalStudents = batches.reduce((acc, b) => acc + (b.studentCount || 0), 0) || 322;
 
   return (
     <div className="min-h-screen transition-colors duration-300 pb-20 relative overflow-hidden flex flex-col justify-between">
@@ -61,7 +60,7 @@ export default function LandingPage() {
           transition={{ duration: 0.5 }}
           className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full ui-card text-xs font-mono font-bold theme-accent-text mb-6 shadow-sm border theme-accent-border"
         >
-          <Sparkles className="w-3.5 h-3.5 theme-accent-text" /> High Performance Academic Analytics Platform
+          <Sparkles className="w-3.5 h-3.5 theme-accent-text" /> Academic Performance Analytics Portal
         </motion.div>
 
         <motion.h1
@@ -82,7 +81,7 @@ export default function LandingPage() {
           transition={{ duration: 0.5, delay: 0.2 }}
           className="text-base sm:text-lg opacity-80 max-w-2xl mx-auto font-medium leading-relaxed mb-10"
         >
-          Explore section-wise CGPA rankings, subject difficulty breakdowns, attendance trends, and head-to-head student comparisons with precision.
+          Explore branch-wise CGPA rankings, grade distributions, subject difficulty insights, and head-to-head student performance metrics.
         </motion.p>
 
         {/* Batch Selection Card Grid */}
@@ -126,7 +125,7 @@ export default function LandingPage() {
                         Batch {b.name}
                       </h4>
                       <p className="text-xs opacity-70 flex items-center gap-1.5">
-                        <Users className="w-3.5 h-3.5 theme-accent-text" /> {b.studentCount || totalStudents} Enrolled Students &bull; CS Branch
+                        <Users className="w-3.5 h-3.5 theme-accent-text" /> {b.studentCount || 322} Enrolled Students &bull; Computer & Information Science
                       </p>
                     </div>
                   </div>
@@ -151,28 +150,28 @@ export default function LandingPage() {
             <div className="text-2xl font-black font-display theme-accent-text mb-0.5">
               {totalStudents}
             </div>
-            <div className="text-xs font-bold opacity-70 uppercase tracking-wider">Regular CS Students</div>
+            <div className="text-xs font-bold opacity-70 uppercase tracking-wider">Enrolled Students</div>
           </div>
 
           <div className="p-4 rounded-2xl ui-card border border-slate-500/20 shadow-sm">
             <div className="text-2xl font-black font-display theme-accent-text mb-0.5">
-              4 Semesters
+              4 Terms
             </div>
-            <div className="text-xs font-bold opacity-70 uppercase tracking-wider">Exam History Scraped</div>
+            <div className="text-xs font-bold opacity-70 uppercase tracking-wider">Semesters 1 - 4</div>
           </div>
 
           <div className="p-4 rounded-2xl ui-card border border-slate-500/20 shadow-sm">
             <div className="text-2xl font-black font-display theme-secondary-text mb-0.5">
-              3 Sections
+              CS & IS
             </div>
-            <div className="text-xs font-bold opacity-70 uppercase tracking-wider">Sec A, Sec B, Sec C</div>
+            <div className="text-xs font-bold opacity-70 uppercase tracking-wider">Academic Branches</div>
           </div>
         </motion.div>
       </main>
 
       {/* Footer */}
       <footer className="text-center text-xs font-mono opacity-70 py-4 relative z-10 border-t border-slate-500/20">
-        GradePulse &bull; Siddaganga Institute of Technology &bull; Computer Science Department
+        GradePulse &bull; Siddaganga Institute of Technology &bull; Academic Analytics Portal
       </footer>
     </div>
   );

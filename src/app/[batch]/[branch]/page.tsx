@@ -45,17 +45,23 @@ export default function SemesterSelectorPage() {
     ? 'COMPUTER SCIENCE & ENGINEERING' 
     : decodedBranch === 'IS' 
     ? 'INFORMATION SCIENCE & ENGINEERING' 
+    : decodedBranch === 'AD'
+    ? 'ARTIFICIAL INTELLIGENCE & DATA SCIENCE'
     : `${decodedBranch} DEPARTMENT`;
 
   const studentCountText = decodedBranch === 'CS' 
     ? '200 Students' 
     : decodedBranch === 'IS' 
     ? '122 Students' 
+    : decodedBranch === 'AD'
+    ? '54 Students'
     : 'Enrolled Students';
 
   const sectionsText = decodedBranch === 'CS' 
     ? 'Sec A, Sec B & Sec C' 
-    : 'Sec A & Sec B';
+    : decodedBranch === 'IS'
+    ? 'Sec A & Sec B'
+    : 'Sec A';
 
   const semDescriptions: Record<number, string> = {
     1: 'First Year Foundation & Basic Engineering Mathematics',

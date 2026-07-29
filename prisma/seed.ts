@@ -6,9 +6,11 @@ const prisma = new PrismaClient();
 async function main() {
   const csJsonPath = 'd:\\SIT Website Hack\\newData\\raw_scraped_cs_2024_2028.json';
   const isJsonPath = 'd:\\SIT Website Hack\\newData\\raw_scraped_is_2024_2028.json';
+  const adJsonPath = 'd:\\SIT Website Hack\\newData\\raw_scraped_ad_2024_2028.json';
   
   let rawDataCS: any[] = [];
   let rawDataIS: any[] = [];
+  let rawDataAD: any[] = [];
 
   if (fs.existsSync(csJsonPath)) {
     console.log(`Loading CS dataset from ${csJsonPath}...`);
@@ -20,6 +22,12 @@ async function main() {
     console.log(`Loading IS dataset from ${isJsonPath}...`);
     rawDataIS = JSON.parse(fs.readFileSync(isJsonPath, 'utf-8'));
     console.log(`Loaded ${rawDataIS.length} IS student profiles.`);
+  }
+
+  if (fs.existsSync(adJsonPath)) {
+    console.log(`Loading AD (AIDS) dataset from ${adJsonPath}...`);
+    rawDataAD = JSON.parse(fs.readFileSync(adJsonPath, 'utf-8'));
+    console.log(`Loaded ${rawDataAD.length} AD student profiles.`);
   }
 
   console.log('Clearing database tables for clean lightning-fast seed...');
@@ -47,6 +55,12 @@ async function main() {
     create: { code: 'IS', name: 'Information Science' },
   });
 
+  const branchAD = await prisma.branch.upsert({
+    where: { code: 'AD' },
+    update: { name: 'Artificial Intelligence & Data Science' },
+    create: { code: 'AD', name: 'Artificial Intelligence & Data Science' },
+  });
+
   console.log('Seeding Semesters...');
   const semestersList = [
     { number: 1, term: 'ODD 2024-25', academicYear: '2024-25', type: 'ODD' },
@@ -67,7 +81,8 @@ async function main() {
 
   const allStudentsData = [
     ...rawDataCS.map(s => ({ ...s, branchId: branchCS.id })),
-    ...rawDataIS.map(s => ({ ...s, branchId: branchIS.id }))
+    ...rawDataIS.map(s => ({ ...s, branchId: branchIS.id })),
+    ...rawDataAD.map(s => ({ ...s, branchId: branchAD.id }))
   ];
 
   console.log(`Collecting Subjects across all ${allStudentsData.length} students...`);

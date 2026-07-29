@@ -171,6 +171,7 @@ export default function StudentDetailModal({ usn, isOpen, onClose }: StudentDeta
                             {subjects.map((sub: any, idx: number) => {
                               const isLowAtt = sub.attendance > 0 && sub.attendance < 85;
                               const isFailed = ['F', 'DX', 'NE', 'AB', 'NP'].includes(sub.grade);
+                              const isRetakeCleared = sub.backlogCleared || sub.attempts > 1;
 
                               return (
                                 <tr key={idx} className="hover:bg-slate-500/10 transition-colors">
@@ -178,12 +179,15 @@ export default function StudentDetailModal({ usn, isOpen, onClose }: StudentDeta
                                     {sub.subject?.courseCode || sub.courseCode}
                                   </td>
                                   <td className="py-2.5 px-2 font-bold">
-                                    {sub.subject?.name || sub.subjectName}
-                                    {sub.backlogCleared && (
-                                      <span className="ml-2 px-1.5 py-0.5 text-[9px] font-black rounded bg-cyan-500/20 text-cyan-500 border border-cyan-500/30">
-                                        Cleared in Retake (Orig: {sub.originalGrade})
-                                      </span>
-                                    )}
+                                    <div className="flex flex-wrap items-center gap-2">
+                                      <span>{sub.subject?.name || sub.subjectName}</span>
+                                      {isRetakeCleared && (
+                                        <span className="px-2 py-0.5 text-[10px] font-black font-mono rounded-md theme-accent-bg text-white shadow-sm inline-flex items-center gap-1">
+                                          <CheckCircle2 className="w-3 h-3 text-white" />
+                                          Cleared in {sub.attempts > 1 ? `${sub.attempts}nd` : '2nd'} Attempt {sub.originalGrade ? `(Prev: ${sub.originalGrade})` : ''}
+                                        </span>
+                                      )}
+                                    </div>
                                   </td>
                                   <td className="py-2.5 px-2 text-center font-mono font-semibold opacity-80">
                                     {sub.cieMarks} / 50

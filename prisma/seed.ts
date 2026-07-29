@@ -146,6 +146,7 @@ async function main() {
 
         const grade = (sub.grade || 'P').trim().toUpperCase();
         const isFail = ['F', 'DX', 'NE', 'AB', 'NP'].includes(grade);
+        const isClearedInRetake = Boolean(sub.backlogCleared) || (Number(sub.attempts) > 1);
 
         subjectResultsToInsert.push({
           studentId,
@@ -156,13 +157,16 @@ async function main() {
           creditsEarned: Number(sub.creditsEarned) || 0,
           gpa: Number(sub.gpa) || 0,
           grade: grade,
+          attempts: Number(sub.attempts) || (isClearedInRetake ? 2 : 1),
+          backlogCleared: isClearedInRetake,
+          originalGrade: sub.originalGrade || (isClearedInRetake ? 'F' : null),
         });
 
         if (isFail) {
           backlogEntriesToInsert.push({
             studentId,
             subjectId,
-            attempts: sub.attempts || 1,
+            attempts: Number(sub.attempts) || 1,
           });
         }
       }

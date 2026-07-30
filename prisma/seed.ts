@@ -7,10 +7,14 @@ async function main() {
   const csJsonPath = 'd:\\SIT Website Hack\\newData\\raw_scraped_cs_2024_2028.json';
   const isJsonPath = 'd:\\SIT Website Hack\\newData\\raw_scraped_is_2024_2028.json';
   const adJsonPath = 'd:\\SIT Website Hack\\newData\\raw_scraped_ad_2024_2028.json';
+  const ciJsonPath = 'd:\\SIT Website Hack\\newData\\raw_scraped_ci_2024_2028.json';
+  const ecJsonPath = 'd:\\SIT Website Hack\\newData\\raw_scraped_ec_2024_2028.json';
   
   let rawDataCS: any[] = [];
   let rawDataIS: any[] = [];
   let rawDataAD: any[] = [];
+  let rawDataCI: any[] = [];
+  let rawDataEC: any[] = [];
 
   if (fs.existsSync(csJsonPath)) {
     console.log(`Loading CS dataset from ${csJsonPath}...`);
@@ -28,6 +32,18 @@ async function main() {
     console.log(`Loading AD (AIDS) dataset from ${adJsonPath}...`);
     rawDataAD = JSON.parse(fs.readFileSync(adJsonPath, 'utf-8'));
     console.log(`Loaded ${rawDataAD.length} AD student profiles.`);
+  }
+
+  if (fs.existsSync(ciJsonPath)) {
+    console.log(`Loading CI (AIML) dataset from ${ciJsonPath}...`);
+    rawDataCI = JSON.parse(fs.readFileSync(ciJsonPath, 'utf-8'));
+    console.log(`Loaded ${rawDataCI.length} CI student profiles.`);
+  }
+
+  if (fs.existsSync(ecJsonPath)) {
+    console.log(`Loading EC dataset from ${ecJsonPath}...`);
+    rawDataEC = JSON.parse(fs.readFileSync(ecJsonPath, 'utf-8'));
+    console.log(`Loaded ${rawDataEC.length} EC student profiles.`);
   }
 
   console.log('Clearing database tables for clean lightning-fast seed...');
@@ -61,6 +77,18 @@ async function main() {
     create: { code: 'AD', name: 'Artificial Intelligence & Data Science' },
   });
 
+  const branchCI = await prisma.branch.upsert({
+    where: { code: 'CI' },
+    update: { name: 'Artificial Intelligence & Machine Learning' },
+    create: { code: 'CI', name: 'Artificial Intelligence & Machine Learning' },
+  });
+
+  const branchEC = await prisma.branch.upsert({
+    where: { code: 'EC' },
+    update: { name: 'Electronics & Communication Engineering' },
+    create: { code: 'EC', name: 'Electronics & Communication Engineering' },
+  });
+
   console.log('Seeding Semesters...');
   const semestersList = [
     { number: 1, term: 'ODD 2024-25', academicYear: '2024-25', type: 'ODD' },
@@ -82,7 +110,9 @@ async function main() {
   const allStudentsData = [
     ...rawDataCS.map(s => ({ ...s, branchId: branchCS.id })),
     ...rawDataIS.map(s => ({ ...s, branchId: branchIS.id })),
-    ...rawDataAD.map(s => ({ ...s, branchId: branchAD.id }))
+    ...rawDataAD.map(s => ({ ...s, branchId: branchAD.id })),
+    ...rawDataCI.map(s => ({ ...s, branchId: branchCI.id })),
+    ...rawDataEC.map(s => ({ ...s, branchId: branchEC.id }))
   ];
 
   console.log(`Collecting Subjects across all ${allStudentsData.length} students...`);

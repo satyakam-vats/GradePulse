@@ -47,6 +47,10 @@ export default function SemesterSelectorPage() {
     ? 'INFORMATION SCIENCE & ENGINEERING' 
     : decodedBranch === 'AD'
     ? 'ARTIFICIAL INTELLIGENCE & DATA SCIENCE'
+    : decodedBranch === 'CI'
+    ? 'ARTIFICIAL INTELLIGENCE & MACHINE LEARNING'
+    : decodedBranch === 'EC'
+    ? 'ELECTRONICS & COMMUNICATION ENGINEERING'
     : `${decodedBranch} DEPARTMENT`;
 
   const studentCountText = decodedBranch === 'CS' 
@@ -55,11 +59,15 @@ export default function SemesterSelectorPage() {
     ? '122 Students' 
     : decodedBranch === 'AD'
     ? '54 Students'
+    : decodedBranch === 'CI'
+    ? '56 Students'
+    : decodedBranch === 'EC'
+    ? '114 Students'
     : 'Enrolled Students';
 
   const sectionsText = decodedBranch === 'CS' 
     ? 'Sec A, Sec B & Sec C' 
-    : decodedBranch === 'IS'
+    : decodedBranch === 'IS' || decodedBranch === 'EC'
     ? 'Sec A & Sec B'
     : 'Sec A';
 

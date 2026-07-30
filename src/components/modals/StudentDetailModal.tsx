@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Award, BookOpen, User, AlertTriangle, CheckCircle2, Clock, Calendar } from 'lucide-react';
+import { X, Award, BookOpen, User, AlertTriangle, CheckCircle2, Clock, Calendar, RefreshCw } from 'lucide-react';
 
 interface StudentDetailModalProps {
   usn: string | null;
@@ -171,7 +171,8 @@ export default function StudentDetailModal({ usn, isOpen, onClose }: StudentDeta
                             {subjects.map((sub: any, idx: number) => {
                               const isLowAtt = sub.attendance > 0 && sub.attendance < 85;
                               const isFailed = ['F', 'DX', 'NE', 'AB', 'NP'].includes(sub.grade);
-                              const isRetakeCleared = sub.backlogCleared || sub.attempts > 1;
+                              const isRetakeCleared = (sub.backlogCleared || sub.attempts > 1) && !isFailed;
+                              const isMultipleAttemptsFailed = (sub.attempts > 1) && isFailed;
 
                               return (
                                 <tr key={idx} className="hover:bg-slate-500/10 transition-colors">
@@ -182,9 +183,15 @@ export default function StudentDetailModal({ usn, isOpen, onClose }: StudentDeta
                                     <div className="flex flex-wrap items-center gap-2">
                                       <span>{sub.subject?.name || sub.subjectName}</span>
                                       {isRetakeCleared && (
-                                        <span className="px-2 py-0.5 text-[10px] font-black font-mono rounded-md theme-accent-bg text-white shadow-sm inline-flex items-center gap-1">
-                                          <CheckCircle2 className="w-3 h-3 text-white" />
+                                        <span className="px-2 py-0.5 text-[10px] font-black font-mono rounded-md bg-emerald-500/20 text-emerald-500 border border-emerald-500/30 shadow-sm inline-flex items-center gap-1">
+                                          <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500" />
                                           Cleared in {sub.attempts > 1 ? `${sub.attempts}nd` : '2nd'} Attempt {sub.originalGrade ? `(Prev: ${sub.originalGrade})` : ''}
+                                        </span>
+                                      )}
+                                      {isMultipleAttemptsFailed && (
+                                        <span className="px-2 py-0.5 text-[10px] font-black font-mono rounded-md bg-amber-500/20 text-amber-500 border border-amber-500/30 shadow-sm inline-flex items-center gap-1">
+                                          <RefreshCw className="w-3 h-3 text-amber-500" />
+                                          Attempt {sub.attempts} (Active Backlog)
                                         </span>
                                       )}
                                     </div>
@@ -201,7 +208,7 @@ export default function StudentDetailModal({ usn, isOpen, onClose }: StudentDeta
                                       }`}
                                     >
                                       {isLowAtt && <AlertTriangle className="w-3 h-3" />}
-                                      {sub.attendance}%
+                                      {sub.attendance > 0 ? `${sub.attendance}%` : '85%+'}
                                     </span>
                                   </td>
                                   <td className="py-2.5 px-2 text-center font-mono font-bold opacity-70">

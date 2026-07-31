@@ -2,6 +2,7 @@ import { PrismaClient } from '@prisma/client';
 
 const prisma = new PrismaClient();
 
+// First & Last Name pools for realistic student generation
 const FIRST_NAMES_MALE = [
   'AARAV', 'ADITYA', 'AKSHAY', 'ANIRUDDH', 'BHUVAN', 'CHETAN', 'DARSHAN', 'DEEPAK',
   'HARSH', 'KARTHIK', 'MANOJ', 'MOHAMMED', 'NEHAL', 'PARTH', 'PRANAV', 'RAHUL',
@@ -54,7 +55,7 @@ function calculateGrade(gpa: number): { grade: string; gradePoint: number } {
 }
 
 async function main() {
-  console.log('🚀 Generating Comprehensive Randomized Synthetic Dataset for all 5 Branches...');
+  console.log('🚀 Starting Comprehensive Synthetic Data Generator...');
 
   console.log('Clearing database tables...');
   await prisma.subjectResult.deleteMany({});
@@ -202,7 +203,7 @@ async function main() {
         bloodGroup,
         creditsEarned: 80,
         creditsToEarn: 80,
-        overallCgpa: 0.0
+        overallCgpa: 0.0 // Will be computed after semester results
       });
     }
 
@@ -218,8 +219,8 @@ async function main() {
 
   const semesterResultsToInsert: any[] = [];
   const subjectResultsToInsert: any[] = [];
-  const backlogEntriesToInsert: any[] = [];
 
+  // Structure to store computed SGPAs per student per semester for CGPA & Rank calculation
   const studentSemPerformance: Record<number, Record<number, { studentId: number; section: string; branchId: number; sgpa: number; cgpa: number; creditsEarned: number }>> = {};
 
   for (const student of allDbStudents) {
@@ -240,6 +241,7 @@ async function main() {
         const subjDb = subjectDbMap.get(c.code);
         const credits = c.credits;
 
+        // Base GPA generation centered around ~8.0
         const baseGpa = getRandomFloat(4.5, 9.8, 1);
         const { grade, gradePoint } = calculateGrade(baseGpa);
         const isFail = grade === 'F';
@@ -255,7 +257,7 @@ async function main() {
         
         semPoints += gradePoint * credits;
 
-        const isRetake = Math.random() < 0.05; // 5% retake rate
+        const isRetake = Math.random() < 0.05; // 5% chance of retake record
 
         subjectResultsToInsert.push({
           studentId: student.id,
@@ -273,14 +275,6 @@ async function main() {
           backlogCleared: isRetake,
           originalGrade: isRetake ? 'F' : null
         });
-
-        if (isFail && !isRetake) {
-          backlogEntriesToInsert.push({
-            studentId: student.id,
-            subjectId: subjDb.id,
-            attempts: 1
-          });
-        }
       }
 
       cumulativePoints += semPoints;
@@ -306,6 +300,7 @@ async function main() {
   for (const semNum of [1, 2, 3, 4]) {
     const semDb = semesterDbMap.get(semNum);
 
+    // Group by Branch
     const branchGroups = new Map<number, any[]>();
     for (const studentId in studentSemPerformance) {
       const perf = studentSemPerformance[studentId][semNum];
@@ -314,9 +309,11 @@ async function main() {
     }
 
     for (const [branchId, branchPerfs] of branchGroups.entries()) {
+      // Sort by CGPA desc to assign Branch Ranks
       branchPerfs.sort((a, b) => b.cgpa - a.cgpa);
       branchPerfs.forEach((p, idx) => { p.rankInBranch = idx + 1; });
 
+      // Group by Section to assign Section Ranks
       const sectionGroups = new Map<string, any[]>();
       for (const p of branchPerfs) {
         if (!sectionGroups.has(p.section)) sectionGroups.set(p.section, []);
@@ -350,14 +347,7 @@ async function main() {
   console.log(`Bulk inserting ${subjectResultsToInsert.length} Subject Results...`);
   await prisma.subjectResult.createMany({ data: subjectResultsToInsert });
 
-  console.log(`Bulk inserting ${backlogEntriesToInsert.length} Backlog Entries...`);
-  const backlogMap = new Map<string, any>();
-  for (const b of backlogEntriesToInsert) {
-    const k = `${b.studentId}_${b.subjectId}`;
-    if (!backlogMap.has(k)) backlogMap.set(k, b);
-  }
-  await prisma.backlog.createMany({ data: Array.from(backlogMap.values()) });
-
+  // Update Student overall CGPA from Sem 4 CGPA
   console.log('Updating overall student CGPAs...');
   for (const studentId in studentSemPerformance) {
     const finalSem4Cgpa = studentSemPerformance[studentId][4].cgpa;
@@ -367,7 +357,7 @@ async function main() {
     });
   }
 
-  console.log('🎉 Comprehensive Synthetic Seeding Completed Successfully!');
+  console.log('🎉 Synthetic Seeding Completed Successfully!');
 }
 
 main()

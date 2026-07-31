@@ -53,6 +53,13 @@ model Student {
   creditsEarned  Int?
   creditsToEarn  Int?
   
+  // Extra Rich Profile Fields
+  email          String?
+  phone          String?
+  mentorName     String?
+  admissionType  String?          @default("CET")
+  bloodGroup     String?
+  
   batch          Batch            @relation(fields: [batchId], references: [id], onDelete: Cascade)
   branch         Branch           @relation(fields: [branchId], references: [id], onDelete: Cascade)
   
@@ -69,6 +76,11 @@ model SemesterResult {
   creditsEarned     Int
   sgpa              Float
   cgpa              Float
+  
+  // Extra Rich Semester Performance Fields
+  rankInSection     Int?
+  rankInBranch      Int?
+  totalAttendance   Float?   @default(90.0)
 
   student  Student  @relation(fields: [studentId], references: [id], onDelete: Cascade)
   semester Semester @relation(fields: [semesterId], references: [id], onDelete: Cascade)
@@ -77,18 +89,23 @@ model SemesterResult {
 }
 
 model SubjectResult {
-  id             Int      @id @default(autoincrement())
-  studentId      Int
-  subjectId      Int
-  semesterId     Int
-  cieMarks       Int
-  attendance     Int
-  creditsEarned  Int
-  gpa            Float
-  grade          String
-  attempts       Int      @default(1)
-  backlogCleared Boolean  @default(false)
-  originalGrade  String?
+  id              Int      @id @default(autoincrement())
+  studentId       Int
+  subjectId       Int
+  semesterId      Int
+  cieMarks        Int
+  attendance      Int
+  creditsEarned   Int
+  gpa             Float
+  grade           String
+  attempts        Int      @default(1)
+  backlogCleared  Boolean  @default(false)
+  originalGrade   String?
+
+  // Extra Rich Subject Component Fields
+  seeMarks        Int?     @default(70)
+  assignmentMarks Int?     @default(10)
+  gradePoint      Int?     @default(8)
 
   student  Student  @relation(fields: [studentId], references: [id], onDelete: Cascade)
   subject  Subject  @relation(fields: [subjectId], references: [id], onDelete: Cascade)

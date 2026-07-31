@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Award, BookOpen, User, AlertTriangle, CheckCircle2, Clock, Calendar, RefreshCw } from 'lucide-react';
+import { X, BookOpen, User, AlertTriangle, CheckCircle2, RefreshCw, Mail, Phone, ShieldCheck, Heart, Award, Trophy } from 'lucide-react';
 
 interface StudentDetailModalProps {
   usn: string | null;
@@ -70,7 +70,7 @@ export default function StudentDetailModal({ usn, isOpen, onClose }: StudentDeta
           className="relative w-full max-w-4xl ui-card rounded-3xl shadow-2xl overflow-hidden z-10 my-8"
         >
           {/* Header */}
-          <div className="p-6 border-b border-slate-500/20 flex items-center justify-between">
+          <div className="p-6 border-b border-slate-500/20 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div className="flex items-center gap-4">
               <div className="w-14 h-14 rounded-2xl theme-accent-bg text-white font-bold flex items-center justify-center shadow-lg text-xl">
                 {studentName ? studentName.charAt(0) : 'S'}
@@ -86,7 +86,7 @@ export default function StudentDetailModal({ usn, isOpen, onClose }: StudentDeta
                     </span>
                   )}
                 </div>
-                <div className="flex items-center gap-3 text-xs font-mono opacity-70 mt-1">
+                <div className="flex flex-wrap items-center gap-3 text-xs font-mono opacity-70 mt-1">
                   <span>USN: <strong className="font-bold">{usn}</strong></span>
                   <span>&bull;</span>
                   <span>Earned Credits: <strong className="theme-accent-text">{creditsEarned} / {creditsEarned + creditsToEarn}</strong></span>
@@ -112,8 +112,30 @@ export default function StudentDetailModal({ usn, isOpen, onClose }: StudentDeta
             </div>
           </div>
 
+          {/* Extended Student Bio Info Bar */}
+          {!loading && student && (
+            <div className="px-6 py-3 bg-slate-500/10 border-b border-slate-500/20 grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
+              <div className="flex items-center gap-1.5 opacity-80">
+                <Mail className="w-3.5 h-3.5 theme-accent-text" />
+                <span className="truncate">{student.email || 'student@sit.ac.in'}</span>
+              </div>
+              <div className="flex items-center gap-1.5 opacity-80">
+                <ShieldCheck className="w-3.5 h-3.5 theme-secondary-text" />
+                <span>Quota: <strong>{student.admissionType || 'CET'}</strong></span>
+              </div>
+              <div className="flex items-center gap-1.5 opacity-80">
+                <User className="w-3.5 h-3.5 theme-accent-text" />
+                <span className="truncate">Mentor: <strong>{student.mentorName || 'Faculty Member'}</strong></span>
+              </div>
+              <div className="flex items-center gap-1.5 opacity-80">
+                <Heart className="w-3.5 h-3.5 text-rose-500" />
+                <span>Blood Group: <strong>{student.bloodGroup || 'O+'}</strong></span>
+              </div>
+            </div>
+          )}
+
           {/* Body */}
-          <div className="p-6 max-h-[75vh] overflow-y-auto space-y-6">
+          <div className="p-6 max-h-[70vh] overflow-y-auto space-y-6">
             {loading ? (
               <div className="py-16 text-center opacity-70 animate-pulse font-medium">
                 Fetching complete academic transcript, attendance & CIE data...
@@ -140,11 +162,17 @@ export default function StudentDetailModal({ usn, isOpen, onClose }: StudentDeta
                           </h3>
                         </div>
 
-                        <div className="flex items-center gap-3 text-xs font-semibold">
-                          <span className="opacity-70">
-                            Reg Credits: <strong className="font-bold">{semRes.creditsRegistered}</strong>
-                          </span>
-                          <span className="opacity-40">&bull;</span>
+                        <div className="flex flex-wrap items-center gap-2.5 text-xs font-semibold">
+                          {semRes.rankInSection && (
+                            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg theme-accent-bg text-white font-mono font-bold">
+                              <Trophy className="w-3 h-3 text-white" /> Sec Rank #{semRes.rankInSection}
+                            </span>
+                          )}
+                          {semRes.rankInBranch && (
+                            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg theme-secondary-bg text-white font-mono font-bold">
+                              <Award className="w-3 h-3 text-white" /> Branch Rank #{semRes.rankInBranch}
+                            </span>
+                          )}
                           <span className="theme-secondary-bg text-white font-bold px-2.5 py-1 rounded-lg">
                             SGPA: {Number(semRes.sgpa).toFixed(2)}
                           </span>
@@ -161,7 +189,8 @@ export default function StudentDetailModal({ usn, isOpen, onClose }: StudentDeta
                             <tr>
                               <th className="py-2 px-2">Course</th>
                               <th className="py-2 px-2">Subject Name</th>
-                              <th className="py-2 px-2 text-center">CIE Marks</th>
+                              <th className="py-2 px-2 text-center">CIE (50)</th>
+                              <th className="py-2 px-2 text-center">SEE (100)</th>
                               <th className="py-2 px-2 text-center">Attendance %</th>
                               <th className="py-2 px-2 text-center">Credits</th>
                               <th className="py-2 px-2 text-right">Grade</th>
@@ -197,7 +226,10 @@ export default function StudentDetailModal({ usn, isOpen, onClose }: StudentDeta
                                     </div>
                                   </td>
                                   <td className="py-2.5 px-2 text-center font-mono font-semibold opacity-80">
-                                    {sub.cieMarks} / 50
+                                    {sub.cieMarks}
+                                  </td>
+                                  <td className="py-2.5 px-2 text-center font-mono font-semibold opacity-80">
+                                    {sub.seeMarks || 70}
                                   </td>
                                   <td className="py-2.5 px-2 text-center">
                                     <span

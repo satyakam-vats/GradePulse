@@ -148,7 +148,7 @@ export default function Leaderboard({
               Sorted by {sortConfig.key.toUpperCase()}
             </span>
           </h3>
-          <p className="text-xs font-medium opacity-70">Click any student row to view attendance & CIE breakdown</p>
+          <p className="text-xs font-medium opacity-70">Click any student row to view full profile & subject component breakdown</p>
         </div>
 
         <div className="flex items-center gap-2">
@@ -197,9 +197,9 @@ export default function Leaderboard({
         </div>
       </div>
 
-      {/* Table Container with Auto Scroll so no rows are clipped */}
+      {/* Table Container */}
       <div className="w-full flex-grow rounded-xl border border-slate-500/20 shadow-inner overflow-x-auto overflow-y-auto">
-        <table className="w-full text-left text-xs table-fixed min-w-[600px]">
+        <table className="w-full text-left text-xs table-fixed min-w-[650px]">
           <thead className="bg-slate-500/10 uppercase tracking-wider font-mono border-b border-slate-500/20 text-[11px] sticky top-0 z-10 backdrop-blur-md">
             <tr>
               <th className="py-2.5 px-3 font-extrabold w-[95px]">Rank</th>
@@ -226,7 +226,7 @@ export default function Leaderboard({
                   SGPA {getSortIcon('sgpa')}
                 </div>
               </th>
-              <th className="py-2.5 px-3 font-extrabold text-right w-[100px]">Status</th>
+              <th className="py-2.5 px-3 font-extrabold text-right w-[100px]">Quota</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-500/10 font-sans">
@@ -243,8 +243,7 @@ export default function Leaderboard({
                 const section = student.section || student.Section || 'A';
                 const cgpaVal = Number(student.cgpa || student.overallCgpa || 0).toFixed(2);
                 const sgpaVal = Number(student.sgpa || 0).toFixed(2);
-                const activeBacklogs = Number(student.activeBacklogs || 0);
-                const clearedBacklogs = Number(student.clearedBacklogs || 0);
+                const quota = student.admissionType || 'CET';
 
                 return (
                   <tr
@@ -270,22 +269,10 @@ export default function Leaderboard({
                     }`}>
                       {sgpaVal}
                     </td>
-                    <td className="py-2.5 px-3 text-right">
-                      {activeBacklogs === 0 ? (
-                        clearedBacklogs > 0 ? (
-                          <span className="inline-flex px-1.5 py-0.5 rounded-full bg-cyan-500/20 text-cyan-500 text-[9px] font-extrabold border border-cyan-500/30 uppercase tracking-wider">
-                            Cleared
-                          </span>
-                        ) : (
-                          <span className="inline-flex px-2 py-0.5 rounded-full theme-accent-bg text-white text-[9px] font-extrabold shadow-sm uppercase tracking-wider">
-                            PASS
-                          </span>
-                        )
-                      ) : (
-                        <span className="inline-flex px-2 py-0.5 rounded-full bg-rose-500/20 text-rose-500 text-[9px] font-extrabold border border-rose-500/30 uppercase tracking-wider">
-                          {activeBacklogs} Backlog{activeBacklogs > 1 ? 's' : ''}
-                        </span>
-                      )}
+                    <td className="py-2.5 px-3 text-right font-mono font-bold text-[11px] opacity-80">
+                      <span className="px-2 py-0.5 rounded-full border border-slate-500/20 bg-slate-500/10">
+                        {quota}
+                      </span>
                     </td>
                   </tr>
                 );

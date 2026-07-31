@@ -22,6 +22,7 @@ export default function DashboardPage() {
 
   const [stats, setStats] = useState<any>(null);
   const [students, setStudents] = useState<any[]>([]);
+  const [availableSems, setAvailableSems] = useState<number[]>([1, 2, 3, 4]);
   const [loading, setLoading] = useState(true);
   const [metric, setMetric] = useState<'cgpa' | 'sgpa'>('cgpa');
 
@@ -29,6 +30,18 @@ export default function DashboardPage() {
   const [selectedStudentUsn, setSelectedStudentUsn] = useState<string | null>(null);
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
   const [isCompareModalOpen, setIsCompareModalOpen] = useState(false);
+
+  useEffect(() => {
+    if (!batch || !branch) return;
+    fetch(`/api/semesters/${batch}/${branch}`)
+      .then((r) => r.json())
+      .then((data) => {
+        if (Array.isArray(data)) {
+          setAvailableSems(data.map((s: any) => s.number));
+        }
+      })
+      .catch(console.error);
+  }, [batch, branch]);
 
   useEffect(() => {
     async function fetchData() {
@@ -127,9 +140,9 @@ export default function DashboardPage() {
 
           {/* Controls: Metric Switcher & Semester Quick Tabs */}
           <div className="flex flex-wrap items-center gap-3">
-            {/* Semester Tabs */}
-            <div className="flex ui-card p-1 rounded-xl text-xs font-bold shadow-sm">
-              {[1, 2, 3, 4, 5, 6, 7, 8].map((sNum) => (
+            {/* Dynamic Semester Tabs */}
+            <div className="flex ui-card p-1 rounded-xl text-xs font-bold shadow-sm overflow-x-auto max-w-full">
+              {availableSems.map((sNum) => (
                 <button
                   key={sNum}
                   onClick={() => router.push(`/${batch}/${branch}/${sNum}`)}

@@ -2,28 +2,32 @@ import { PrismaClient } from '@prisma/client';
 
 const prisma = new PrismaClient();
 
+// First & Last Name pools for realistic student generation
 const FIRST_NAMES_MALE = [
   'AARAV', 'ADITYA', 'AKSHAY', 'ANIRUDDH', 'BHUVAN', 'CHETAN', 'DARSHAN', 'DEEPAK',
   'HARSH', 'KARTHIK', 'MANOJ', 'MOHAMMED', 'NEHAL', 'PARTH', 'PRANAV', 'RAHUL',
   'RISHITH', 'ROHIT', 'SAMARTH', 'SANDESH', 'SHASHANK', 'SUHAS', 'SURYANSH', 'TARUN',
-  'VARUN', 'VINAYAK', 'VISHWANATH', 'VIVEK', 'YASH', 'YOGANANDA'
+  'VARUN', 'VINAYAK', 'VISHWANATH', 'VIVEK', 'YASH', 'YOGANANDA', 'ABHISHEK', 'BHARATH',
+  'CHIRAG', 'GURUPRASAD', 'HEMANTH', 'JAGADISH', 'KIRAN', 'LIKITH', 'NANDAN', 'PAVAN'
 ];
 
 const FIRST_NAMES_FEMALE = [
   'AKSHATHA', 'ANANYA', 'ANUSHA', 'BINDUDHARA', 'CHAITHRA', 'DARSHINI', 'HITHASHREE',
   'KIRANKUMARI', 'MONIKA', 'POOJA', 'PRIYA', 'RAKSHA', 'RAMYASHREE', 'SAHANA',
-  'SHREYA', 'SOUJANYA', 'SUPRIYA', 'TEJASWINI', 'VANITHA', 'VARSHINI'
+  'SHREYA', 'SOUJANYA', 'SUPRIYA', 'TEJASWINI', 'VANITHA', 'VARSHINI', 'AISHWARYA',
+  'BHAVANA', 'DIVYA', 'HARSHITHA', 'KEERTHI', 'MEGHANA', 'NISHITHA', 'PRATHIBHA', 'SNEHA'
 ];
 
 const LAST_NAMES = [
   'GOWDA', 'KUMAR', 'PATEL', 'SHETTY', 'RAO', 'SHARMA', 'SINGH', 'DESHMUKH',
   'MUDIGOUDRA', 'B S', 'H M', 'M GOWDA', 'RATHOD', 'HIREMATH', 'INGALAGI',
-  'YADAV', 'PARUK', 'KATYARMAL', 'GUPTA', 'ALUR'
+  'YADAV', 'PARUK', 'KATYARMAL', 'GUPTA', 'ALUR', 'NAIK', 'KULKARNI', 'JOSHI'
 ];
 
 const MENTORS = [
   'Dr. R. S. Kadadevarmath', 'Dr. K. N. Subramanya', 'Dr. H. S. Jayanna',
-  'Dr. N. R. Sunitha', 'Dr. M. B. Nirmala', 'Dr. T. R. Dinesh'
+  'Dr. N. R. Sunitha', 'Dr. M. B. Nirmala', 'Dr. T. R. Dinesh', 'Dr. C. P. Chandrashekar',
+  'Dr. S. V. Dinesh', 'Dr. M. A. Jayaram', 'Dr. G. T. Chandrappa'
 ];
 
 const BLOOD_GROUPS = ['A+', 'B+', 'O+', 'AB+', 'A-', 'B-', 'O-'];
@@ -54,59 +58,72 @@ function calculateGrade(gpa: number): { grade: string; gradePoint: number } {
 }
 
 async function main() {
-  console.log('🚀 Generating Comprehensive Randomized Synthetic Dataset for all 5 Branches...');
+  console.log('🚀 Generating Multi-Batch (2022-2026, 2023-2027, 2024-2028, 2025-2029) Synthetic Dataset...');
 
-  console.log('Clearing database tables...');
+  console.log('Clearing existing database tables...');
   await prisma.subjectResult.deleteMany({});
   await prisma.semesterResult.deleteMany({});
   await prisma.backlog.deleteMany({});
   await prisma.student.deleteMany({});
+  await prisma.semester.deleteMany({});
+  await prisma.subject.deleteMany({});
+  await prisma.branch.deleteMany({});
+  await prisma.batch.deleteMany({});
 
-  console.log('Creating Academic Batch...');
-  const batch = await prisma.batch.upsert({
-    where: { id: 1 },
-    update: { name: '2024-2028', startYear: 2024, endYear: 2028 },
-    create: { name: '2024-2028', startYear: 2024, endYear: 2028 },
-  });
+  // 1. Batches Config
+  const batchesConfig = [
+    { name: '2022-2026', startYear: 2022, endYear: 2026, prefix: '22', activeSemesters: 8 },
+    { name: '2023-2027', startYear: 2023, endYear: 2027, prefix: '23', activeSemesters: 6 },
+    { name: '2024-2028', startYear: 2024, endYear: 2028, prefix: '24', activeSemesters: 4 },
+    { name: '2025-2029', startYear: 2025, endYear: 2029, prefix: '25', activeSemesters: 2 },
+  ];
 
-  console.log('Creating Academic Branches...');
+  const batchDbMap = new Map<string, any>();
+  for (const b of batchesConfig) {
+    const bObj = await prisma.batch.create({
+      data: { name: b.name, startYear: b.startYear, endYear: b.endYear }
+    });
+    batchDbMap.set(b.name, bObj);
+  }
+
+  // 2. Branches Config
   const branchesConfig = [
-    { code: 'CS', name: 'Computer Science & Engineering', count: 200, sections: ['A', 'B', 'C'] },
-    { code: 'IS', name: 'Information Science & Engineering', count: 122, sections: ['A', 'B'] },
+    { code: 'CS', name: 'Computer Science & Engineering', count: 180, sections: ['A', 'B', 'C'] },
+    { code: 'IS', name: 'Information Science & Engineering', count: 120, sections: ['A', 'B'] },
     { code: 'AD', name: 'Artificial Intelligence & Data Science', count: 60, sections: ['A'] },
     { code: 'CI', name: 'Artificial Intelligence & Machine Learning', count: 60, sections: ['A'] },
-    { code: 'EC', name: 'Electronics & Communication Engineering', count: 120, sections: ['A', 'B'] }
+    { code: 'EC', name: 'Electronics & Communication Engineering', count: 120, sections: ['A', 'B'] },
+    { code: 'ME', name: 'Mechanical Engineering', count: 60, sections: ['A'] },
+    { code: 'CV', name: 'Civil Engineering', count: 60, sections: ['A'] },
   ];
 
   const branchDbMap = new Map<string, any>();
-  for (const b of branchesConfig) {
-    const branchObj = await prisma.branch.upsert({
-      where: { code: b.code },
-      update: { name: b.name },
-      create: { code: b.code, name: b.name },
+  for (const br of branchesConfig) {
+    const brObj = await prisma.branch.create({
+      data: { code: br.code, name: br.name }
     });
-    branchDbMap.set(b.code, branchObj);
+    branchDbMap.set(br.code, brObj);
   }
 
-  console.log('Creating Semesters...');
+  // 3. Semesters (Sem 1 to Sem 8)
   const semestersConfig = [
     { number: 1, term: 'ODD 2024-25', academicYear: '2024-25', type: 'ODD' },
     { number: 2, term: 'EVEN 2024-25', academicYear: '2024-25', type: 'EVEN' },
     { number: 3, term: 'ODD 2025-26', academicYear: '2025-26', type: 'ODD' },
     { number: 4, term: 'EVEN 2025-26', academicYear: '2025-26', type: 'EVEN' },
+    { number: 5, term: 'ODD 2026-27', academicYear: '2026-27', type: 'ODD' },
+    { number: 6, term: 'EVEN 2026-27', academicYear: '2026-27', type: 'EVEN' },
+    { number: 7, term: 'ODD 2027-28', academicYear: '2027-28', type: 'ODD' },
+    { number: 8, term: 'EVEN 2027-28', academicYear: '2027-28', type: 'EVEN' },
   ];
 
   const semesterDbMap = new Map<number, any>();
   for (const s of semestersConfig) {
-    const semObj = await prisma.semester.upsert({
-      where: { term: s.term },
-      update: s,
-      create: s,
-    });
+    const semObj = await prisma.semester.create({ data: s });
     semesterDbMap.set(s.number, semObj);
   }
 
-  console.log('Creating Course Curriculum per Semester...');
+  // 4. Curriculum Courses per Semester
   const curriculum: Record<number, Array<{ code: string; name: string; credits: number }>> = {
     1: [
       { code: 'MATS1', name: 'MATHEMATICS-I FOR ENGINEERING STREAM', credits: 4 },
@@ -147,11 +164,47 @@ async function main() {
       { code: 'S4CCSL01', name: 'DESIGN AND ANALYSIS OF ALGORITHMS LABORATORY', credits: 1 },
       { code: 'S4CSA01', name: 'JAVASCRIPT & WEB TECHNOLOGIES', credits: 1 },
       { code: 'SHS02', name: 'UNIVERSAL HUMAN VALUES', credits: 1 },
+    ],
+    5: [
+      { code: 'S5CCS01', name: 'COMPUTER NETWORKS & COMMUNICATIONS', credits: 4 },
+      { code: 'S5CCS02', name: 'DATABASE MANAGEMENT SYSTEMS', credits: 4 },
+      { code: 'S5CCS03', name: 'SOFTWARE ENGINEERING & AGILE ARCHITECTURE', credits: 3 },
+      { code: 'S5CCS04', name: 'FULL STACK WEB DEVELOPMENT', credits: 3 },
+      { code: 'S5CCS05', name: 'SYSTEM SOFTWARE & COMPILER PRINCIPLES', credits: 3 },
+      { code: 'S5CCSL01', name: 'COMPUTER NETWORKS LABORATORY', credits: 1 },
+      { code: 'S5CCSL02', name: 'DBMS & SQL LABORATORY', credits: 1 },
+      { code: 'SHS03', name: 'QUANTITATIVE APTITUDE & REASONING', credits: 1 },
+    ],
+    6: [
+      { code: 'S6CCS01', name: 'MACHINE LEARNING ALGORITHMS', credits: 4 },
+      { code: 'S6CCS02', name: 'CLOUD COMPUTING & VIRTUALIZATION', credits: 4 },
+      { code: 'S6CCS03', name: 'CYBER SECURITY & CRYPTOGRAPHY', credits: 3 },
+      { code: 'S6PE01', name: 'PROFESSIONAL ELECTIVE I: AI ARCHITECTURES', credits: 3 },
+      { code: 'S6PE02', name: 'PROFESSIONAL ELECTIVE II: MOBILE APPLICATION DEV', credits: 3 },
+      { code: 'S6CCSL01', name: 'MACHINE LEARNING LABORATORY', credits: 1 },
+      { code: 'S6MP01', name: 'MINI PROJECT WITH DESIGN THINKING', credits: 1 },
+      { code: 'SHS04', name: 'RESEARCH METHODOLOGY & IPR', credits: 1 },
+    ],
+    7: [
+      { code: 'S7CCS01', name: 'DEEP LEARNING & NEURAL NETWORKS', credits: 4 },
+      { code: 'S7CCS02', name: 'BIG DATA ANALYTICS & HADOOP', credits: 4 },
+      { code: 'S7PE03', name: 'PROFESSIONAL ELECTIVE III: BLOCKCHAIN TECH', credits: 3 },
+      { code: 'S7OE01', name: 'OPEN ELECTIVE I: QUANTUM COMPUTING', credits: 3 },
+      { code: 'S7PJ01', name: 'MAJOR PROJECT PHASE 1', credits: 3 },
+      { code: 'S7INT01', name: 'SUMMER INTERNSHIP REPORT & VIVA', credits: 2 },
+      { code: 'S7CCSL01', name: 'DEEP LEARNING LABORATORY', credits: 1 },
+      { code: 'SHS05', name: 'TECHNICAL SEMINAR', credits: 1 },
+    ],
+    8: [
+      { code: 'S8PJ02', name: 'MAJOR PROJECT PHASE 2 & DISSERTATION', credits: 12 },
+      { code: 'S8PE04', name: 'PROFESSIONAL ELECTIVE IV: ADVANCED NLP', credits: 3 },
+      { code: 'S8OE02', name: 'OPEN ELECTIVE II: ENTREPRENEURSHIP', credits: 3 },
+      { code: 'S8SEM01', name: 'COMPREHENSIVE VIVA VOCE', credits: 2 },
     ]
   };
 
   const subjectDbMap = new Map<string, any>();
-  for (const semNum of [1, 2, 3, 4]) {
+  for (const semNum of [1, 2, 3, 4, 5, 6, 7, 8]) {
     for (const c of curriculum[semNum]) {
       const subjObj = await prisma.subject.upsert({
         where: { courseCode: c.code },
@@ -162,73 +215,86 @@ async function main() {
     }
   }
 
-  // Generate Students per Branch
-  for (const bConfig of branchesConfig) {
-    const branchDb = branchDbMap.get(bConfig.code);
-    console.log(`Generating ${bConfig.count} students for ${bConfig.code} (${bConfig.name})...`);
+  // 5. Generate Students Across All Batches & Branches
+  let totalStudentCount = 0;
 
-    const studentsToCreate: any[] = [];
-    const secSize = Math.ceil(bConfig.count / bConfig.sections.length);
+  for (const bConfig of batchesConfig) {
+    const batchDb = batchDbMap.get(bConfig.name);
 
-    for (let i = 1; i <= bConfig.count; i++) {
-      const isMale = Math.random() > 0.45;
-      const firstName = getRandomElement(isMale ? FIRST_NAMES_MALE : FIRST_NAMES_FEMALE);
-      const lastName = getRandomElement(LAST_NAMES);
-      const fullName = `${firstName} ${lastName}`;
-      
-      const numStr = String(i).padStart(3, '0');
-      const usn = `1SI24${bConfig.code}${numStr}`;
-      
-      const secIdx = Math.min(Math.floor((i - 1) / secSize), bConfig.sections.length - 1);
-      const section = bConfig.sections[secIdx];
+    for (const brConfig of branchesConfig) {
+      const branchDb = branchDbMap.get(brConfig.code);
+      console.log(`Generating Batch ${bConfig.name} - ${brConfig.code} (${brConfig.count} students)...`);
 
-      const email = `${firstName.toLowerCase()}.${lastName.toLowerCase().replace(/\s+/g, '')}@sit.ac.in`;
-      const phone = `+91 98${getRandomInt(10000000, 99999999)}`;
-      const mentorName = getRandomElement(MENTORS);
-      const admissionType = getRandomElement(ADMISSION_TYPES);
-      const bloodGroup = getRandomElement(BLOOD_GROUPS);
+      const studentsToCreate: any[] = [];
+      const secSize = Math.ceil(brConfig.count / brConfig.sections.length);
 
-      studentsToCreate.push({
-        usn,
-        name: fullName,
-        gender: isMale ? 'Male' : 'Female',
-        section,
-        batchId: batch.id,
-        branchId: branchDb.id,
-        email,
-        phone,
-        mentorName,
-        admissionType,
-        bloodGroup,
-        creditsEarned: 80,
-        creditsToEarn: 80,
-        overallCgpa: 0.0
-      });
+      for (let i = 1; i <= brConfig.count; i++) {
+        const isMale = Math.random() > 0.45;
+        const firstName = getRandomElement(isMale ? FIRST_NAMES_MALE : FIRST_NAMES_FEMALE);
+        const lastName = getRandomElement(LAST_NAMES);
+        const fullName = `${firstName} ${lastName}`;
+
+        // USN divided by year: 1SI22CS001, 1SI23CS001, 1SI24CS001, 1SI25CS001
+        const numStr = String(i).padStart(3, '0');
+        const usn = `1SI${bConfig.prefix}${brConfig.code}${numStr}`;
+
+        // Sections divided by USN range/first letter
+        const secIdx = Math.min(Math.floor((i - 1) / secSize), brConfig.sections.length - 1);
+        const section = brConfig.sections[secIdx];
+
+        const email = `${firstName.toLowerCase()}.${lastName.toLowerCase().replace(/\s+/g, '')}@sit.ac.in`;
+        const phone = `+91 98${getRandomInt(10000000, 99999999)}`;
+        const mentorName = getRandomElement(MENTORS);
+        const admissionType = getRandomElement(ADMISSION_TYPES);
+        const bloodGroup = getRandomElement(BLOOD_GROUPS);
+
+        studentsToCreate.push({
+          usn,
+          name: fullName,
+          gender: isMale ? 'Male' : 'Female',
+          section,
+          batchId: batchDb.id,
+          branchId: branchDb.id,
+          email,
+          phone,
+          mentorName,
+          admissionType,
+          bloodGroup,
+          creditsEarned: bConfig.activeSemesters * 20,
+          creditsToEarn: 160 - (bConfig.activeSemesters * 20),
+          overallCgpa: 0.0
+        });
+
+        totalStudentCount++;
+      }
+
+      await prisma.student.createMany({ data: studentsToCreate });
     }
-
-    await prisma.student.createMany({ data: studentsToCreate });
   }
 
   // Fetch all DB Students
   const allDbStudents = await prisma.student.findMany({
-    include: { branch: true }
+    include: { batch: true, branch: true }
   });
 
-  console.log(`Created ${allDbStudents.length} total students. Generating Semester & Subject Results...`);
+  console.log(`Created ${allDbStudents.length} total students across all batches. Generating Results...`);
 
   const semesterResultsToInsert: any[] = [];
   const subjectResultsToInsert: any[] = [];
   const backlogEntriesToInsert: any[] = [];
 
-  const studentSemPerformance: Record<number, Record<number, { studentId: number; section: string; branchId: number; sgpa: number; cgpa: number; creditsEarned: number }>> = {};
+  const studentSemPerformance: Record<number, Record<number, { studentId: number; section: string; branchId: number; batchId: number; sgpa: number; cgpa: number; creditsEarned: number }>> = {};
 
   for (const student of allDbStudents) {
+    const batchInfo = batchesConfig.find(b => b.name === student.batch.name)!;
+    const activeSemesters = batchInfo.activeSemesters;
+
     let cumulativePoints = 0;
     let cumulativeCredits = 0;
 
     studentSemPerformance[student.id] = {};
 
-    for (const semNum of [1, 2, 3, 4]) {
+    for (let semNum = 1; semNum <= activeSemesters; semNum++) {
       const semDb = semesterDbMap.get(semNum);
       const subjects = curriculum[semNum];
 
@@ -240,22 +306,22 @@ async function main() {
         const subjDb = subjectDbMap.get(c.code);
         const credits = c.credits;
 
-        const baseGpa = getRandomFloat(4.5, 9.8, 1);
+        const baseGpa = getRandomFloat(5.0, 9.9, 1);
         const { grade, gradePoint } = calculateGrade(baseGpa);
         const isFail = grade === 'F';
-        
-        const cieMarks = getRandomInt(25, 49);
-        const seeMarks = isFail ? getRandomInt(15, 35) : getRandomInt(45, 98);
-        const assignmentMarks = getRandomInt(7, 10);
-        const attendance = getRandomInt(82, 100);
+
+        const cieMarks = getRandomInt(26, 49);
+        const seeMarks = isFail ? getRandomInt(15, 35) : getRandomInt(48, 98);
+        const assignmentMarks = getRandomInt(8, 10);
+        const attendance = getRandomInt(83, 100);
 
         const creditsEarned = isFail ? 0 : credits;
         semCreditsReg += credits;
         semCreditsEarned += creditsEarned;
-        
+
         semPoints += gradePoint * credits;
 
-        const isRetake = Math.random() < 0.05; // 5% retake rate
+        const isRetake = Math.random() < 0.04;
 
         subjectResultsToInsert.push({
           studentId: student.id,
@@ -293,6 +359,7 @@ async function main() {
         studentId: student.id,
         section: student.section || 'A',
         branchId: student.branchId,
+        batchId: student.batchId,
         sgpa,
         cgpa,
         creditsEarned: semCreditsEarned
@@ -300,46 +367,52 @@ async function main() {
     }
   }
 
-  // Calculate Ranks per Semester per Branch and per Section
-  console.log('Calculating Section Ranks & Branch Ranks...');
+  // Calculate Ranks per Batch per Branch per Semester per Section
+  console.log('Calculating Section Ranks & Branch Ranks across all batches...');
 
-  for (const semNum of [1, 2, 3, 4]) {
-    const semDb = semesterDbMap.get(semNum);
+  for (const bConfig of batchesConfig) {
+    const batchDb = batchDbMap.get(bConfig.name);
 
-    const branchGroups = new Map<number, any[]>();
-    for (const studentId in studentSemPerformance) {
-      const perf = studentSemPerformance[studentId][semNum];
-      if (!branchGroups.has(perf.branchId)) branchGroups.set(perf.branchId, []);
-      branchGroups.get(perf.branchId)!.push(perf);
-    }
+    for (let semNum = 1; semNum <= bConfig.activeSemesters; semNum++) {
+      const semDb = semesterDbMap.get(semNum);
 
-    for (const [branchId, branchPerfs] of branchGroups.entries()) {
-      branchPerfs.sort((a, b) => b.cgpa - a.cgpa);
-      branchPerfs.forEach((p, idx) => { p.rankInBranch = idx + 1; });
-
-      const sectionGroups = new Map<string, any[]>();
-      for (const p of branchPerfs) {
-        if (!sectionGroups.has(p.section)) sectionGroups.set(p.section, []);
-        sectionGroups.get(p.section)!.push(p);
+      const branchGroups = new Map<number, any[]>();
+      for (const studentId in studentSemPerformance) {
+        const perf = studentSemPerformance[studentId][semNum];
+        if (perf && perf.batchId === batchDb.id) {
+          if (!branchGroups.has(perf.branchId)) branchGroups.set(perf.branchId, []);
+          branchGroups.get(perf.branchId)!.push(perf);
+        }
       }
 
-      for (const [sec, secPerfs] of sectionGroups.entries()) {
-        secPerfs.sort((a, b) => b.cgpa - a.cgpa);
-        secPerfs.forEach((p, idx) => { p.rankInSection = idx + 1; });
-      }
+      for (const [branchId, branchPerfs] of branchGroups.entries()) {
+        branchPerfs.sort((a, b) => b.cgpa - a.cgpa);
+        branchPerfs.forEach((p, idx) => { p.rankInBranch = idx + 1; });
 
-      for (const p of branchPerfs) {
-        semesterResultsToInsert.push({
-          studentId: p.studentId,
-          semesterId: semDb.id,
-          creditsRegistered: 20,
-          creditsEarned: p.creditsEarned,
-          sgpa: p.sgpa,
-          cgpa: p.cgpa,
-          rankInBranch: p.rankInBranch,
-          rankInSection: p.rankInSection,
-          totalAttendance: getRandomFloat(86.0, 98.5, 1)
-        });
+        const sectionGroups = new Map<string, any[]>();
+        for (const p of branchPerfs) {
+          if (!sectionGroups.has(p.section)) sectionGroups.set(p.section, []);
+          sectionGroups.get(p.section)!.push(p);
+        }
+
+        for (const [sec, secPerfs] of sectionGroups.entries()) {
+          secPerfs.sort((a, b) => b.cgpa - a.cgpa);
+          secPerfs.forEach((p, idx) => { p.rankInSection = idx + 1; });
+        }
+
+        for (const p of branchPerfs) {
+          semesterResultsToInsert.push({
+            studentId: p.studentId,
+            semesterId: semDb.id,
+            creditsRegistered: 20,
+            creditsEarned: p.creditsEarned,
+            sgpa: p.sgpa,
+            cgpa: p.cgpa,
+            rankInBranch: p.rankInBranch,
+            rankInSection: p.rankInSection,
+            totalAttendance: getRandomFloat(87.0, 98.5, 1)
+          });
+        }
       }
     }
   }
@@ -360,14 +433,16 @@ async function main() {
 
   console.log('Updating overall student CGPAs...');
   for (const studentId in studentSemPerformance) {
-    const finalSem4Cgpa = studentSemPerformance[studentId][4].cgpa;
+    const perfs = studentSemPerformance[studentId];
+    const maxSem = Math.max(...Object.keys(perfs).map(Number));
+    const finalCgpa = perfs[maxSem].cgpa;
     await prisma.student.update({
       where: { id: Number(studentId) },
-      data: { overallCgpa: finalSem4Cgpa }
+      data: { overallCgpa: finalCgpa }
     });
   }
 
-  console.log('🎉 Comprehensive Synthetic Seeding Completed Successfully!');
+  console.log('🎉 Multi-Batch & Multi-Branch Seeding Completed Successfully!');
 }
 
 main()

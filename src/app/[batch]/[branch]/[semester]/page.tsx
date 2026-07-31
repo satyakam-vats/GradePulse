@@ -9,11 +9,13 @@ import GradeBandChart from '@/components/charts/GradeBandChart';
 import SubjectAnalysis from '@/components/dashboard/SubjectAnalysis';
 import Leaderboard from '@/components/dashboard/Leaderboard';
 import SectionComparison from '@/components/dashboard/SectionComparison';
+import AcademicRiskCard from '@/components/dashboard/AcademicRiskCard';
 import DynamicBarChart from '@/components/charts/DynamicBarChart';
 import StudentDetailModal from '@/components/modals/StudentDetailModal';
 import CompareModal from '@/components/modals/CompareModal';
+import CommandPaletteModal from '@/components/modals/CommandPaletteModal';
 import { ThemeToggle } from '@/components/ui/ThemeToggle';
-import { Users, Sparkles, Activity } from 'lucide-react';
+import { Users, Sparkles, Activity, Command, Search } from 'lucide-react';
 
 export default function DashboardPage() {
   const params = useParams();
@@ -25,11 +27,25 @@ export default function DashboardPage() {
   const [availableSems, setAvailableSems] = useState<number[]>([1, 2, 3, 4]);
   const [loading, setLoading] = useState(true);
   const [metric, setMetric] = useState<'cgpa' | 'sgpa'>('cgpa');
+  const [showAtRiskOnly, setShowAtRiskOnly] = useState(false);
 
   // Modal states
   const [selectedStudentUsn, setSelectedStudentUsn] = useState<string | null>(null);
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
   const [isCompareModalOpen, setIsCompareModalOpen] = useState(false);
+  const [isCommandPaletteOpen, setIsCommandPaletteOpen] = useState(false);
+
+  // Keyboard shortcut listener for Cmd + K / Ctrl + K
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+        e.preventDefault();
+        setIsCommandPaletteOpen(prev => !prev);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
 
   useEffect(() => {
     if (!batch || !branch) return;
@@ -111,6 +127,16 @@ export default function DashboardPage() {
           </nav>
 
           <div className="flex items-center gap-3">
+            {/* Quick Command Palette Button */}
+            <button
+              onClick={() => setIsCommandPaletteOpen(true)}
+              className="hidden sm:inline-flex items-center gap-2 px-3 py-1.5 rounded-xl border border-slate-500/20 bg-slate-500/10 text-xs font-bold transition-all cursor-pointer hover:bg-slate-500/20"
+            >
+              <Search className="w-3.5 h-3.5 theme-accent-text" />
+              <span>Search...</span>
+              <kbd className="px-1.5 py-0.5 text-[10px] font-mono rounded bg-slate-500/20">⌘K</kbd>
+            </button>
+
             <button
               onClick={() => setIsCompareModalOpen(true)}
               className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl theme-accent-bg text-white text-xs font-bold transition-all shadow-md cursor-pointer hover:opacity-90"
@@ -196,6 +222,13 @@ export default function DashboardPage() {
             {/* Asymmetric Hero Summary Cards */}
             <SummaryCards stats={stats} metric={metric} semesterNumber={currentSem} />
 
+            {/* Academic Risk Radar & Early Warning Card */}
+            <AcademicRiskCard
+              students={students}
+              onFilterAtRisk={() => setShowAtRiskOnly(prev => !prev)}
+              isFilterActive={showAtRiskOnly}
+            />
+
             {/* Section Comparison Cards */}
             <SectionComparison sectionStats={sectionStatsData} metric={metric} />
 
@@ -229,6 +262,8 @@ export default function DashboardPage() {
                   students={students} 
                   onStudentClick={handleStudentClick} 
                   metric={metric}
+                  showAtRiskOnly={showAtRiskOnly}
+                  onToggleAtRisk={() => setShowAtRiskOnly(prev => !prev)}
                 />
               </div>
             </div>
@@ -250,6 +285,16 @@ export default function DashboardPage() {
         students={students}
         isOpen={isCompareModalOpen}
         onClose={() => setIsCompareModalOpen(false)}
+      />
+
+      <CommandPaletteModal
+        isOpen={isCommandPaletteOpen}
+        onClose={() => setIsCommandPaletteOpen(false)}
+        onSelectStudent={(usn) => {
+          setSelectedStudentUsn(usn);
+          setIsDetailModalOpen(true);
+        }}
+        onOpenCompare={() => setIsCompareModalOpen(true)}
       />
     </div>
   );

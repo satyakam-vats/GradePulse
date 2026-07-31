@@ -1,8 +1,8 @@
 'use client';
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Search, ArrowRightLeft, Trophy, Award, CheckCircle2, AlertTriangle, Zap, Sparkles } from 'lucide-react';
+import { X, Search, ArrowRightLeft, Trophy, Sparkles } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 
 interface CompareModalProps {
@@ -26,6 +26,23 @@ export default function CompareModal({ isOpen, onClose, students, allStudents }:
 
   const [compareData, setCompareData] = useState<any>(null);
   const [loading, setLoading] = useState(false);
+
+  const drop1Ref = useRef<HTMLDivElement>(null);
+  const drop2Ref = useRef<HTMLDivElement>(null);
+
+  // Close dropdowns on outside click
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (drop1Ref.current && !drop1Ref.current.contains(e.target as Node)) {
+        setIsDropdown1Open(false);
+      }
+      if (drop2Ref.current && !drop2Ref.current.contains(e.target as Node)) {
+        setIsDropdown2Open(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   // Compute master rank map over full student list
   const masterRankMap = useMemo(() => {
@@ -149,7 +166,7 @@ export default function CompareModal({ isOpen, onClose, students, allStudents }:
           {/* Student Selector Toolbar */}
           <div className="p-6 border-b border-slate-500/20 grid grid-cols-1 md:grid-cols-2 gap-6 relative">
             {/* Student 1 Selection */}
-            <div className="space-y-1.5 relative">
+            <div ref={drop1Ref} className="space-y-1.5 relative">
               <label className="text-xs font-black uppercase tracking-wider theme-accent-text font-mono flex items-center gap-1.5">
                 <Sparkles className="w-3.5 h-3.5" /> Student 1
               </label>
@@ -189,7 +206,7 @@ export default function CompareModal({ isOpen, onClose, students, allStudents }:
                   />
 
                   {isDropdown1Open && filtered1.length > 0 && (
-                    <div className="absolute top-full left-0 right-0 z-50 mt-1 bg-slate-950 text-white border border-slate-800 rounded-2xl shadow-2xl overflow-hidden max-h-56 overflow-y-auto">
+                    <div className="absolute top-full left-0 right-0 z-50 mt-1 ui-card border border-slate-500/20 rounded-2xl shadow-2xl overflow-hidden max-h-56 overflow-y-auto backdrop-blur-xl">
                       {filtered1.map((st) => {
                         const usn = st.usn || st.USN;
                         const rankInfo = masterRankMap.get(usn) || { rank: 1 };
@@ -201,7 +218,7 @@ export default function CompareModal({ isOpen, onClose, students, allStudents }:
                               setSearch1(st.name || st.Name);
                               setIsDropdown1Open(false);
                             }}
-                            className="w-full text-left p-3 hover:bg-slate-800 border-b border-slate-800/60 last:border-0 transition-colors flex items-center justify-between cursor-pointer"
+                            className="w-full text-left p-3 hover:bg-slate-500/10 border-b border-slate-500/10 last:border-0 transition-colors flex items-center justify-between cursor-pointer"
                           >
                             <div>
                               <div className="font-bold text-xs">{st.name || st.Name}</div>
@@ -220,7 +237,7 @@ export default function CompareModal({ isOpen, onClose, students, allStudents }:
             </div>
 
             {/* Student 2 Selection */}
-            <div className="space-y-1.5 relative">
+            <div ref={drop2Ref} className="space-y-1.5 relative">
               <label className="text-xs font-black uppercase tracking-wider theme-secondary-text font-mono flex items-center gap-1.5">
                 <Sparkles className="w-3.5 h-3.5" /> Student 2
               </label>
@@ -260,7 +277,7 @@ export default function CompareModal({ isOpen, onClose, students, allStudents }:
                   />
 
                   {isDropdown2Open && filtered2.length > 0 && (
-                    <div className="absolute top-full left-0 right-0 z-50 mt-1 bg-slate-950 text-white border border-slate-800 rounded-2xl shadow-2xl overflow-hidden max-h-56 overflow-y-auto">
+                    <div className="absolute top-full left-0 right-0 z-50 mt-1 ui-card border border-slate-500/20 rounded-2xl shadow-2xl overflow-hidden max-h-56 overflow-y-auto backdrop-blur-xl">
                       {filtered2.map((st) => {
                         const usn = st.usn || st.USN;
                         const rankInfo = masterRankMap.get(usn) || { rank: 1 };
@@ -272,7 +289,7 @@ export default function CompareModal({ isOpen, onClose, students, allStudents }:
                               setSearch2(st.name || st.Name);
                               setIsDropdown2Open(false);
                             }}
-                            className="w-full text-left p-3 hover:bg-slate-800 border-b border-slate-800/60 last:border-0 transition-colors flex items-center justify-between cursor-pointer"
+                            className="w-full text-left p-3 hover:bg-slate-500/10 border-b border-slate-500/10 last:border-0 transition-colors flex items-center justify-between cursor-pointer"
                           >
                             <div>
                               <div className="font-bold text-xs">{st.name || st.Name}</div>

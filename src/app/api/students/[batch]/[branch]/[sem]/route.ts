@@ -60,16 +60,29 @@ export async function GET(
       const activeBacklogs = student.subjectResults.filter(sr => ['F', 'DX', 'NE', 'AB', 'NP'].includes(sr.grade)).length;
       const clearedBacklogs = student.subjectResults.filter(sr => sr.backlogCleared).length;
 
+      // Calculate mean attendance for this semester across subject results
+      const totalAtt = student.subjectResults.length
+        ? student.subjectResults.reduce((acc, sr) => acc + (sr.attendance || 0), 0) / student.subjectResults.length
+        : semResult?.totalAttendance ?? 90;
+
       return {
         id: student.id,
         usn: student.usn,
         name: student.name,
         gender: student.gender,
         section: student.section || 'A',
+        admissionType: student.admissionType || 'CET',
+        email: student.email,
+        phone: student.phone,
+        mentorName: student.mentorName,
+        bloodGroup: student.bloodGroup,
         sgpa: semResult?.sgpa ?? null,
         cgpa: semResult?.cgpa ?? null,
         creditsEarned: semResult?.creditsEarned ?? null,
         creditsRegistered: semResult?.creditsRegistered ?? null,
+        rankInSection: semResult?.rankInSection ?? null,
+        rankInBranch: semResult?.rankInBranch ?? null,
+        attendance: Number(totalAtt.toFixed(1)),
         activeBacklogs,
         clearedBacklogs
       };
